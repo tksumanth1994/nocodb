@@ -18,6 +18,7 @@ import {
   isVirtualCol,
   readonlyMetaAllowedTypes,
 } from 'nocodb-sdk'
+import { LongTextAiMetaProp } from '~/utils/columnUtils'
 import { AiWizardTabsType, type PredictedFieldType, type UiTypesType } from '#imports'
 import MdiPlusIcon from '~icons/mdi/plus-circle-outline'
 import MdiMinusIcon from '~icons/mdi/minus-circle-outline'

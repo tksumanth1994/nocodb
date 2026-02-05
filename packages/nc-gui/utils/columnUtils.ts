@@ -328,9 +328,9 @@ const isColumnInvalid = ({
         const isIntegrationMissing = isNocoAiAvailable
           ? false
           : !colOptions.fk_integration_id ||
-            (isReadOnly
-              ? false
-              : !!colOptions.fk_integration_id && !ncIsArrayIncludes(aiIntegrations, colOptions.fk_integration_id, 'id'))
+          (isReadOnly
+            ? false
+            : !!colOptions.fk_integration_id && !ncIsArrayIncludes(aiIntegrations, colOptions.fk_integration_id, 'id'))
 
         if (isIntegrationMissing) {
           result.isInvalid = true
@@ -358,9 +358,9 @@ const isColumnInvalid = ({
         const isIntegrationMissing = isNocoAiAvailable
           ? false
           : !colOptions.fk_integration_id ||
-            (isReadOnly
-              ? false
-              : !!colOptions.fk_integration_id && !ncIsArrayIncludes(aiIntegrations, colOptions.fk_integration_id, 'id'))
+          (isReadOnly
+            ? false
+            : !!colOptions.fk_integration_id && !ncIsArrayIncludes(aiIntegrations, colOptions.fk_integration_id, 'id'))
 
         if (isIntegrationMissing) {
           result.isInvalid = true

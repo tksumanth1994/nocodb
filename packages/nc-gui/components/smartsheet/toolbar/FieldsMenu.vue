@@ -57,6 +57,28 @@ const isFieldsMenuReadOnly = computed(() => {
 
 const isAddingColumnAllowed = computed(() => !readOnly.value && isUIAllowed('fieldAdd') && !isSqlView.value)
 
+const isAIEnrichmentDialogOpen = ref(false)
+const open = ref(false)
+
+const handleOpenAiEnrichment = () => {
+  open.value = false // Close the Fields dropdown first
+  isAIEnrichmentDialogOpen.value = true
+}
+
+const handleAIEnrichmentSave = (config: {
+  prompt: string
+  outputColumns: Array<{ name: string; type: string }>
+  runOption?: '1' | '10' | 'all'
+}) => {
+  // TODO: Implement logic later
+  console.log('AI Enrichment config:', config)
+  isAIEnrichmentDialogOpen.value = false
+}
+
+const handleAIEnrichmentCancel = () => {
+  isAIEnrichmentDialogOpen.value = false
+}
+
 const { addUndo, defineViewScope } = useUndoRedo()
 
 const viewStore = useViewsStore()
@@ -369,8 +391,6 @@ const showAllColumns = computed({
     }
   },
 })
-
-const open = ref(false)
 
 const showSystemField = computed({
   get: () => {
@@ -887,13 +907,14 @@ const onAddColumnDropdownVisibilityChange = () => {
             </Draggable>
           </div>
         </div>
-
+          
         <div
           v-if="!isLocalMode && !filterQuery"
           class="flex px-2 gap-1 py-2 border-t-1 justify-between border-nc-border-gray-medium"
         >
+
           <NcButton
-            class="nc-fields-show-system-fields !px-2 !font-semibold"
+          class="nc-fields-show-system-fields !px-2 !font-semibold"
             size="small"
             type="text"
             :disabled="isFieldsMenuReadOnly"
@@ -902,40 +923,51 @@ const onAddColumnDropdownVisibilityChange = () => {
             <GeneralIcon :icon="showSystemField ? 'eyeSlash' : 'eye'" class="!w-4 !h-4 mr-2" />
             <span> {{ $t('title.systemFields') }} </span>
           </NcButton>
-          <NcDropdown
-            v-if="isAddingColumnAllowed"
-            v-model:visible="addColumnDropdown"
-            :trigger="['click']"
-            overlay-class-name="nc-dropdown-add-column !bg-transparent !border-none !shadow-none !rounded-2xl"
-            placement="right"
-            :align="{
-              offset: [9, -15],
-            }"
-            @visible-change="onAddColumnDropdownVisibilityChange"
-          >
-            <NcButton text-color="primary" class="nc-fields-add-new-field !font-semibold !px-2" size="small" type="text">
-              <GeneralIcon icon="ncPlus" class="!w-4 !h-4 mr-1" />
-              <span>{{ t('general.new') }} {{ t('objects.field') }}</span>
-            </NcButton>
-            <template #overlay>
-              <div class="nc-edit-or-add-provider-wrapper">
-                <LazySmartsheetColumnEditOrAddProvider
-                  v-if="addColumnDropdown"
-                  ref="editOrAddProviderRef"
-                  @submit="onColumnSubmitted()"
-                  @cancel="addColumnDropdown = false"
-                  @click.stop
-                  @keydown.stop
-                />
-              </div>
-            </template>
-          </NcDropdown>
+          <div class="flex gap-2">
+            <SmartsheetToolbarAIFieldButton v-if="isAddingColumnAllowed" @click="handleOpenAiEnrichment" />
+            <NcDropdown
+              v-if="isAddingColumnAllowed"
+              v-model:visible="addColumnDropdown"
+              :trigger="['click']"
+              overlay-class-name="nc-dropdown-add-column !bg-transparent !border-none !shadow-none !rounded-2xl"
+              placement="right"
+              :align="{
+                offset: [9, -15],
+              }"
+              @visible-change="onAddColumnDropdownVisibilityChange"
+            >
+              <NcButton text-color="primary" class="nc-fields-add-new-field !font-semibold !px-2" size="small" type="text">
+                <GeneralIcon icon="ncPlus" class="!w-4 !h-4 mr-1" />
+                <span>{{ t('general.new') }} {{ t('objects.field') }}</span>
+              </NcButton>
+              <template #overlay>
+                <div class="nc-edit-or-add-provider-wrapper">
+                  <LazySmartsheetColumnEditOrAddProvider
+                    v-if="addColumnDropdown"
+                    ref="editOrAddProviderRef"
+                    @submit="onColumnSubmitted()"
+                    @cancel="addColumnDropdown = false"
+                    @click.stop
+                    @keydown.stop
+                  />
+                </div>
+              </template>
+            </NcDropdown>
+          </div>
         </div>
 
         <GeneralLockedViewFooter v-if="isLocked" @on-open="open = false" />
       </div>
     </template>
   </NcDropdown>
+
+  <!-- AI Enrichment Dialog -->
+  <SmartsheetColumnAIEnrichmentDialog
+    v-model:visible="isAIEnrichmentDialogOpen"
+    :columns="meta?.columns || []"
+    @save="handleAIEnrichmentSave"
+    @cancel="handleAIEnrichmentCancel"
+  />
 </template>
 
 <style lang="scss" scoped>
