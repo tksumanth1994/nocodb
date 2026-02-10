@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
+import { UITypes } from 'nocodb-sdk'
 
 const props = defineProps<{
   visible: boolean
@@ -10,7 +11,7 @@ const emit = defineEmits<{
   (e: 'update:visible', value: boolean): void
   (
     e: 'save',
-    config: { prompt: string; outputColumns: Array<{ name: string; type: string }>; runOption?: '1' | '10' | 'all' },
+    config: { prompt: string; outputColumns: Array<{ name: string; type: UITypes }>; runOption?: '1' | '10' | 'all' | 'none' },
   ): void
   (e: 'cancel'): void
 }>()
@@ -34,20 +35,34 @@ const removeColumn = (id: string) => {
   outputColumns.value = outputColumns.value.filter((col) => col.id !== id)
 }
 
-const columnTypeOptions = ['Text', 'Number', 'Date', 'Link', 'Boolean']
+const columnTypeOptions = ['Text', 'Number', 'Date', 'URL', 'Checkbox']
+
+// Map simple type names to UITypes
+const typeToUIType: Record<string, UITypes> = {
+  Text: UITypes.SingleLineText,
+  Number: UITypes.Number,
+  Date: UITypes.Date,
+  URL: UITypes.URL,
+  Checkbox: UITypes.Checkbox,
+  Link: UITypes.URL,
+  Boolean: UITypes.Checkbox,
+}
 
 const saveDropdownVisible = ref(false)
 
-const handleSave = (runOption?: '1' | '10' | 'all') => {
+const handleSave = (runOption?: '1' | '10' | 'all' | 'none') => {
   const validColumns = outputColumns.value.filter((col) => col.name.trim())
-  if (!prompt.value.trim() || validColumns.length === 0) {
-    message.warning(t('msg.pleaseFillRequiredFields'))
+  if (validColumns.length === 0) {
+    message.warning('Please add at least one column with a name')
     return
   }
 
   emit('save', {
     prompt: prompt.value,
-    outputColumns: validColumns.map((col) => ({ name: col.name, type: col.type })),
+    outputColumns: validColumns.map((col) => ({
+      name: col.name,
+      type: typeToUIType[col.type] || UITypes.SingleLineText,
+    })),
     runOption,
   })
 
@@ -66,22 +81,21 @@ const handleCancel = () => {
     <GeneralModal v-model:visible="visible" size="medium" :mask-closable="false" class="!z-[1100]" @keydown.esc="handleCancel">
       <div class="space-y-6 p-6">
         <!-- Title -->
-         <div>
-
-             <div class=" font-semibold text-nc-content-gray">
-                 {{ $t('title.whatIsYourPrompt') }}
-                </div>
-                <!-- Prompt Input -->
-            <div class="mt-2">
-<a-textarea
-                    v-model:value="prompt"
-                    :rows="4"
-                    :placeholder="$t('placeholder.userCanSelectColumnsByUsingSlash')"
-                    class="w-full rounded-lg"
-                    size="large"
-                    />
-                </div>
-            </div>
+        <div>
+          <div class="font-semibold text-nc-content-gray">
+            {{ $t('title.whatIsYourPrompt') }}
+          </div>
+          <!-- Prompt Input -->
+          <div class="mt-2">
+            <a-textarea
+              v-model:value="prompt"
+              :rows="4"
+              :placeholder="$t('placeholder.userCanSelectColumnsByUsingSlash')"
+              class="w-full rounded-lg"
+              size="large"
+            />
+          </div>
+        </div>
 
         <!-- Add Column Section -->
         <div>
@@ -105,7 +119,6 @@ const handleCancel = () => {
             <GeneralIcon icon="plus" class="w-4 h-4 mr-2" />
             {{ $t('title.addColumn') }}
           </NcButton>
-
         </div>
 
         <!-- Action Buttons -->
@@ -121,7 +134,11 @@ const handleCancel = () => {
               <GeneralIcon icon="arrowDown" class="w-4 h-4 ml-1" />
             </NcButton>
             <template #overlay>
-              <div class="bg-nc-bg-default  rounded-lg shadow-lg py-1 min-w-[200px]">
+              <div class="bg-nc-bg-default rounded-lg shadow-lg py-1 min-w-[200px]">
+                <div class="px-4 py-2 hover:bg-nc-bg-gray-extralight cursor-pointer" @click="handleSave('none')">
+                  <GeneralIcon icon="plus" class="w-4 h-4 mr-2 inline" />
+                  {{ $t('title.saveAndDontRun') }}
+                </div>
                 <div class="px-4 py-2 hover:bg-nc-bg-gray-extralight cursor-pointer" @click="handleSave('1')">
                   <GeneralIcon icon="plus" class="w-4 h-4 mr-2 inline" />
                   {{ $t('title.saveAndRunOn1Row') }}
@@ -133,10 +150,6 @@ const handleCancel = () => {
                 <div class="px-4 py-2 hover:bg-nc-bg-gray-extralight cursor-pointer" @click="handleSave('all')">
                   <GeneralIcon icon="plus" class="w-4 h-4 mr-2 inline" />
                   {{ $t('title.saveAndRunOnAllRows') }}
-                </div>
-                <div class="px-4 py-2 hover:bg-nc-bg-gray-extralight cursor-pointer" @click="handleSave('all')">
-                  <GeneralIcon icon="plus" class="w-4 h-4 mr-2 inline" />
-                  {{ $t('general.save') }}
                 </div>
               </div>
             </template>

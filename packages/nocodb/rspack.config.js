@@ -100,6 +100,7 @@ module.exports = {
       typescript: {
         configFile: resolve('tsconfig.json'),
       },
+      memoryLimit: 4096, // 4GB memory limit for TypeScript type-checking
     }),
   ],
   target: 'node',

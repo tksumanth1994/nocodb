@@ -74,7 +74,9 @@ const columnTypeName = computed(() => {
 
   return column.value.uidt ? UITypesName[column.value.uidt] : ''
 })
-
+const isAIColumn = computed(() => {
+  return parseProp(column.value?.meta)?.isAIField === true
+})
 const addField = async (payload: any) => {
   columnOrder.value = payload
   editColumnDropdown.value = true
@@ -227,6 +229,12 @@ const onClick = (e: Event) => {
       </NcTooltip>
 
       <span v-if="(column.rqd && !column.cdf) || required" class="text-nc-content-red-medium">&nbsp;*</span>
+
+      <!-- AI Column Indicator -->
+      <NcTooltip v-if="isAIColumn" class="flex items-center ml-1">
+        <template #title>AI Enriched Column</template>
+        <GeneralIcon icon="ncAutoAwesome" class="nc-ai-column-icon flex-none w-6 h-6 text-nc-content-purple-dark" />
+      </NcTooltip>
 
       <PermissionsTooltip
         v-if="!isAllowedToEditField"

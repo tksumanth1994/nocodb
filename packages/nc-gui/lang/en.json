@@ -884,6 +884,7 @@
     "saveAndRunOn1Row": "Save & Run on 1 row",
     "saveAndRunOn10Rows": "Save & Run on 10 rows",
     "saveAndRunOnAllRows": "Save & Run on All rows",
+    "saveAndDontRun": "Save & Don't Run",
     "deleteWs": "Delete Workspace",
     "deletingWs": "Deleting Workspace",
     "copyAuthToken": "Copy Auth Token",

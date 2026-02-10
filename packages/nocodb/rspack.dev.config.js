@@ -67,7 +67,10 @@ const baseDevConfig = {
       configFile: resolve('tsconfig.json'),
     },
     alias: {
-      '@noco-local-integrations': resolve(__dirname, '../noco-integrations/packages'),
+      '@noco-local-integrations': resolve(
+        __dirname,
+        '../noco-integrations/packages',
+      ),
     },
   },
   optimization: {
@@ -93,6 +96,7 @@ const baseDevConfig = {
       typescript: {
         configFile: resolve('tsconfig.json'),
       },
+      memoryLimit: 4096, // 4GB memory limit for TypeScript type-checking
     }),
   ],
   output: {

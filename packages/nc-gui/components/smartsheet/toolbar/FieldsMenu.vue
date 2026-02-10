@@ -65,14 +65,78 @@ const handleOpenAiEnrichment = () => {
   isAIEnrichmentDialogOpen.value = true
 }
 
-const handleAIEnrichmentSave = (config: {
+const { $api } = useNuxtApp()
+
+const handleAIEnrichmentSave = async (config: {
   prompt: string
-  outputColumns: Array<{ name: string; type: string }>
-  runOption?: '1' | '10' | 'all'
+  outputColumns: Array<{ name: string; type: UITypes }>
+  runOption?: '1' | '10' | 'all' | 'none'
 }) => {
-  // TODO: Implement logic later
-  console.log('AI Enrichment config:', config)
-  isAIEnrichmentDialogOpen.value = false
+  try {
+    if (!meta.value?.id || !meta.value?.base_id || !meta.value?.fk_workspace_id) {
+      message.error('Table metadata not available')
+      return
+    }
+
+    const currIndex = meta.value?.columns?.length ?? 0
+
+    // Build bulk operations for adding columns
+    const bulkOpsCols = config.outputColumns.map((col, index) => ({
+      op: 'add' as const,
+      column: {
+        title: col.name,
+        column_name: col.name,
+        uidt: col.type,
+        table_name: meta.value?.table_name,
+        view_id: activeView.value?.id,
+        order: currIndex + index,
+        column_order: {
+          order: currIndex + index,
+          view_id: activeView.value?.id,
+        },
+        // ⭐ ADD YOUR AI METADATA HERE
+        meta: {
+          isAIField: true,
+          prompt: {
+            prompt_text: config.prompt,
+            references: [], // You can populate this with column IDs used in the prompt
+            created_at: new Date().toISOString(),
+            created_by: null, // Add user ID if available
+          },
+        },
+      },
+    }))
+
+    // Add columns via bulk operation
+    await $api.internal.postOperation(
+      meta.value.fk_workspace_id,
+      meta.value.base_id,
+      { operation: 'columnsBulk', tableId: meta.value.id },
+      {
+        hash: meta.value?.columnsHash,
+        ops: bulkOpsCols,
+      },
+    )
+
+    // Refresh table metadata to show new columns
+    await getMeta(meta.value.base_id, meta.value.id, true)
+
+    // Reload view columns
+    await loadViewColumns()
+
+    message.success(`${config.outputColumns.length} column(s) added successfully`)
+
+    // TODO: If runOption is not 'none', trigger AI enrichment job here
+    if (config.runOption && config.runOption !== 'none') {
+      console.log('AI enrichment will run on:', config.runOption, 'rows with prompt:', config.prompt)
+      // Future: Call AI enrichment API here
+    }
+  } catch (e: any) {
+    console.error(e)
+    message.error('Failed to add columns')
+  } finally {
+    isAIEnrichmentDialogOpen.value = false
+  }
 }
 
 const handleAIEnrichmentCancel = () => {

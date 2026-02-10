@@ -1,5 +1,13 @@
 import type { WritableComputedRef } from '@vue/reactivity'
-import { AllAggregations, type ColumnType, PlanTitles, type TableType, UITypes, isCreatedOrLastModifiedByCol } from 'nocodb-sdk'
+import {
+  AllAggregations,
+  type ColumnType,
+  PlanTitles,
+  type TableType,
+  UITypes,
+  isCreatedOrLastModifiedByCol,
+  parseProp,
+} from 'nocodb-sdk'
 import type { Composer } from 'vue-i18n'
 import {
   isBoxHovered,
@@ -356,6 +364,12 @@ export function useCanvasRender({
         iconSpace += 18
       }
 
+      // Add space for AI icon if needed
+      const scrollColMeta = parseProp(column?.columnObj?.meta)
+      if (scrollColMeta?.isAIField) {
+        iconSpace += 20
+      }
+
       const iconConfig = (
         column?.virtual ? renderVIcon(column.columnObj, column.relatedColObj) : renderIcon(column.columnObj, column.abstractType)
       ) as any
@@ -420,6 +434,18 @@ export function useCanvasRender({
           icon: 'ncInfo',
           size: 13,
           color: getColor(themeV4Colors.gray['500']),
+          x: rightOffset - scrollLeft.value,
+          y: headerRowHeight.value / 2 - 7,
+        })
+      }
+
+      const columnMeta = parseProp(column?.columnObj?.meta)
+      if (columnMeta?.isAIField) {
+        rightOffset -= 18
+        spriteLoader.renderIcon(ctx, {
+          icon: 'ncAutoAwesome',
+          size: 13,
+          color: '#7C3AED', // Purple color for AI
           x: rightOffset - scrollLeft.value,
           y: headerRowHeight.value / 2 - 7,
         })
@@ -565,6 +591,12 @@ export function useCanvasRender({
           iconSpace += 18
         }
 
+        // Add space for AI icon if needed
+        const fixedColMeta = parseProp(column?.columnObj?.meta)
+        if (fixedColMeta?.isAIField) {
+          iconSpace += 18
+        }
+
         // Background
         ctx.fillStyle = getColor(themeV4Colors.gray['100'])
         ctx.fillRect(xOffset, 0, width, headerRowHeight.value)
@@ -696,6 +728,19 @@ export function useCanvasRender({
             color: getColor(themeV4Colors.gray['500']),
             x: rightOffset,
             y: y - 7,
+          })
+        }
+
+        // AI icon if is AI enriched column
+        const columnMeta = parseProp(column?.columnObj?.meta)
+        if (columnMeta?.isAIField) {
+          rightOffset -= 18
+          spriteLoader.renderIcon(ctx, {
+            icon: 'ncAutoAwesome',
+            size: 16,
+            color: '#7C3AED', // Purple color for AI
+            x: rightOffset - scrollLeft.value,
+            y: headerRowHeight.value / 2 - 8,
           })
         }
         xOffset += width
@@ -1030,8 +1075,8 @@ export function useCanvasRender({
           isHovered && !selectedRows.value.length && !vSelectedAllRecords.value
             ? '#3265FF'
             : selectedRows.value.length
-            ? getColor(themeV4Colors.gray['400'])
-            : getColor(themeV4Colors.gray['500']),
+              ? getColor(themeV4Colors.gray['400'])
+              : getColor(themeV4Colors.gray['500']),
       })
       currentX += 26
     } else {
@@ -1810,12 +1855,12 @@ export function useCanvasRender({
         // Bottom border for each row
         ctx.strokeStyle =
           isRowHovered ||
-          row?.rowMeta?.selected ||
-          isRowCellSelected ||
-          isNextRowHovered ||
-          isNextRowCellSelected ||
-          isNextRowSelected ||
-          rowColor
+            row?.rowMeta?.selected ||
+            isRowCellSelected ||
+            isNextRowHovered ||
+            isNextRowCellSelected ||
+            isNextRowSelected ||
+            rowColor
             ? getColor(themeV4Colors.gray['300'])
             : getColor(themeV4Colors.gray['200'])
         ctx.lineWidth = 1
@@ -2242,37 +2287,37 @@ export function useCanvasRender({
 
         const selectedGroupRecords = isGroupBy.value
           ? extractGroupPaths(cachedGroups.value).reduce((acc, path) => {
-              const dataCache = getDataCache(path)
-              const selectedRowsCount = dataCache.selectedRows.value?.length ?? 0
+            const dataCache = getDataCache(path)
+            const selectedRowsCount = dataCache.selectedRows.value?.length ?? 0
 
-              return acc + selectedRowsCount
-            }, 0)
+            return acc + selectedRowsCount
+          }, 0)
           : vSelectedAllRecords.value
-          ? Math.max(totalRows.value, actualTotalRows.value ?? 0)
-          : selectedRows.value?.length ?? 0
+            ? Math.max(totalRows.value, actualTotalRows.value ?? 0)
+            : selectedRows.value?.length ?? 0
 
         const count =
           selectedGroupRecords > 0
             ? selectedGroupRecords
             : selection.value.cellCount > 1
-            ? selection.value.cellCount
-            : isGroupBy.value
-            ? totalGroups.value
-            : Math.max(totalRows.value, actualTotalRows.value ?? 0)
+              ? selection.value.cellCount
+              : isGroupBy.value
+                ? totalGroups.value
+                : Math.max(totalRows.value, actualTotalRows.value ?? 0)
         const label =
           selectedGroupRecords > 0
             ? selectedGroupRecords === 1
               ? t('labels.recordSelected')
               : t('labels.recordsSelected')
             : selection.value.cellCount > 1
-            ? t('labels.cellsSelected')
-            : isGroupBy.value
-            ? count !== 1
-              ? t('objects.groups')
-              : t('objects.group')
-            : count !== 1
-            ? t('objects.records')
-            : t('objects.record')
+              ? t('labels.cellsSelected')
+              : isGroupBy.value
+                ? count !== 1
+                  ? t('objects.groups')
+                  : t('objects.group')
+                : count !== 1
+                  ? t('objects.records')
+                  : t('objects.record')
 
         renderSingleLineText(ctx, {
           text: `${Intl.NumberFormat('en', { notation: 'compact' }).format(count)} ${label}`,
@@ -3068,7 +3113,7 @@ export function useCanvasRender({
                   column.agg_prefix,
                   aggXOffset + width - aggWidth - 16 - scrollLeft.value,
                   groupHeaderY +
-                    (GROUP_HEADER_HEIGHT + (group?.isExpanded && !group?.path ? GROUP_EXPANDED_BOTTOM_PADDING : 0)) / 2,
+                  (GROUP_HEADER_HEIGHT + (group?.isExpanded && !group?.path ? GROUP_EXPANDED_BOTTOM_PADDING : 0)) / 2,
                 )
               }
               ctx.fillStyle = getColor(themeV4Colors.gray['700'])
@@ -3077,7 +3122,7 @@ export function useCanvasRender({
                 group?.aggregations[column.title] ?? ' - ',
                 aggXOffset + width - 8 - scrollLeft.value,
                 groupHeaderY +
-                  (GROUP_HEADER_HEIGHT + (group?.isExpanded && !group?.path ? GROUP_EXPANDED_BOTTOM_PADDING : 0)) / 2,
+                (GROUP_HEADER_HEIGHT + (group?.isExpanded && !group?.path ? GROUP_EXPANDED_BOTTOM_PADDING : 0)) / 2,
               )
 
               ctx.restore()
