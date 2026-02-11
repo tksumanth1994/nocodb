@@ -36,6 +36,7 @@ const {
   showSystemFields,
   fields,
   filteredFieldList,
+  hasViewFieldDataEditPermission,
   searchBasisIdMap,
   numberOfHiddenFields,
   filterQuery,
@@ -52,7 +53,7 @@ const {
 const { eventBus, isDefaultView, isSqlView, isViewOperationsAllowed } = useSmartsheetStoreOrThrow()
 
 const isFieldsMenuReadOnly = computed(() => {
-  return isLocked.value || !isViewOperationsAllowed.value
+  return isLocked.value || !isViewOperationsAllowed.value || (isLocalMode.value && hasViewFieldDataEditPermission.value)
 })
 
 const isAddingColumnAllowed = computed(() => !readOnly.value && isUIAllowed('fieldAdd') && !isSqlView.value)
@@ -410,7 +411,7 @@ const onHideAll = async () => {
 const visibleFields = computed(
   () =>
     fields.value?.filter((field: Field) => {
-      if (!field.initialShow && isLocalMode.value) {
+      if (!field.initialShow && isLocalMode.value && !hasViewFieldDataEditPermission.value) {
         return false
       }
 
@@ -578,6 +579,11 @@ const showAddLookupDropdown = (field: Field) => {
 
 function conditionalToggleFieldVisibility(field: Field) {
   if (showAddLookupDropdown(field) || isFieldsMenuReadOnly.value) {
+    return
+  }
+
+  // For editor role we just have to show hidden field without giving access to change field visibility
+  if (!field.initialShow && isLocalMode.value && hasViewFieldDataEditPermission.value) {
     return
   }
 
@@ -952,6 +958,7 @@ const onAddColumnDropdownVisibilityChange = () => {
                             />
                           </NcButton>
                         </div>
+
                         <span class="flex children:flex-none" @click.stop="conditionalToggleFieldVisibility(field)">
                           <NcSwitch
                             :checked="field.show"
@@ -1020,7 +1027,14 @@ const onAddColumnDropdownVisibilityChange = () => {
           </div>
         </div>
 
-        <GeneralLockedViewFooter v-if="isLocked" @on-open="open = false" />
+        <GeneralLockedViewFooter
+          v-if="isFieldsMenuReadOnly"
+          :show-icon="isLocked"
+          :show-unlock-button="isLocked"
+          @on-open="open = false"
+        >
+          <template v-if="!isLocked" #title> You don’t have permission to edit this view. </template>
+        </GeneralLockedViewFooter>
       </div>
     </template>
   </NcDropdown>

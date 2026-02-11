@@ -52,6 +52,8 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
 
     const isLocalMode = computed(() => isPublic || !isUIAllowed('viewFieldEdit') || isSharedBase.value)
 
+    const hasViewFieldDataEditPermission = computed(() => isUIAllowed('viewFieldDataEdit'))
+
     const localChanges = ref<Record<string, Field>>({})
 
     const isColumnViewEssential = (column: ColumnType) => {
@@ -361,10 +363,18 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       set(v: boolean) {
         if (view?.value?.id) {
           if (!isLocalMode.value) {
-            $api.dbView
-              .update(view.value.id, {
-                show_system_fields: v,
-              })
+            $api.internal
+              .postOperation(
+                view.value.fk_workspace_id!,
+                view.value.base_id!,
+                {
+                  operation: 'viewUpdate',
+                  viewId: view.value.id,
+                },
+                {
+                  show_system_fields: v,
+                },
+              )
               .finally(() => {
                 loadViewColumns()
                 reloadData?.()
@@ -428,7 +438,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       searchBasisIdMap.value = {}
 
       return (fields.value || []).filter((field: Field) => {
-        if (!field.initialShow && isLocalMode.value) {
+        if (!field.initialShow && isLocalMode.value && !hasViewFieldDataEditPermission.value) {
           return false
         }
         const column = metaColumnById?.value?.[field.fk_column_id!]
@@ -457,7 +467,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
     const numberOfHiddenFields = computed(() => {
       return (fields.value || [])
         ?.filter((field: Field) => {
-          if (!field.initialShow && isLocalMode.value) {
+          if (!field.initialShow && isLocalMode.value && !hasViewFieldDataEditPermission.value) {
             return false
           }
 
@@ -680,6 +690,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       isLocalMode,
       updateDefaultViewColumnMeta,
       hidingViewColumnsMap,
+      hasViewFieldDataEditPermission,
     }
   },
   'useViewColumnsOrThrow',

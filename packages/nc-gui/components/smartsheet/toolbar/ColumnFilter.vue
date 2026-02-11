@@ -38,6 +38,7 @@ interface Props {
   readOnly?: boolean
   queryFilter?: boolean
   isColourFilter?: boolean
+  isTempFilters?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -61,6 +62,7 @@ const props = withDefaults(defineProps<Props>(), {
   isViewFilter: false,
   readOnly: false,
   isColourFilter: false,
+  isTempFilters: false,
 })
 
 const emit = defineEmits([
@@ -191,6 +193,7 @@ const {
   linkColId,
   fieldsToFilter,
   parentColId,
+  props.isTempFilters,
 )
 
 const { getPlanLimit } = useWorkspace()
@@ -302,11 +305,14 @@ const filterUpdateCondition = (filter: FilterType, i: number) => {
 
 watch(
   () => activeView.value?.id,
-  (n, o) => {
+  (viewId, oldViewId) => {
     // if nested no need to reload since it will get reloaded from parent
+    // if isViewFilter (toolbar), rely on ColumnFilterMenu to load filters
     if (
       !nested.value &&
-      n !== o &&
+      !isViewFilter.value &&
+      viewId &&
+      viewId !== oldViewId &&
       (hookId?.value || !webHook.value) &&
       (linkColId?.value || !link.value) &&
       (widgetId.value || !widget.value)
@@ -320,6 +326,7 @@ watch(
         isLink: link.value,
       })
   },
+  { immediate: true },
 )
 
 const allFilters: Ref<Record<string, FilterType[]>> = inject(AllFiltersInj, ref({}))
@@ -356,7 +363,7 @@ const applyChanges = async (hookOrColId?: string, nested = false, isConditionSup
   if (!localNestedFilters.value?.length) return
 
   for (const nestedFilter of localNestedFilters.value) {
-    if (nestedFilter.parentId) {
+    if (nestedFilter?.parentId) {
       await nestedFilter.applyChanges(hookOrColId, true, undefined)
     }
   }
@@ -491,7 +498,8 @@ const showFilterInput = (filter: Filter) => {
 }
 
 const eventBusHandler = async (event) => {
-  if (event === SmartsheetStoreEvents.FIELD_UPDATE) {
+  // reload filters only for views
+  if (isViewFilter.value && event === SmartsheetStoreEvents.FIELD_UPDATE) {
     await loadFilters({
       loadAllFilters: true,
     })
@@ -503,7 +511,7 @@ onMounted(async () => {
 
   await Promise.all([
     (async () => {
-      if (!initialModelValue?.length)
+      if (!props.isTempFilters && !initialModelValue?.length)
         await loadFilters({
           hookId: hookId?.value,
           isWebhook: webHook.value,
@@ -898,6 +906,7 @@ defineExpose({
                   :disable-add-new-filter="disableAddNewFilter"
                   :is-view-filter="isViewFilter"
                   :read-only="readOnly"
+                  :is-temp-filters="isTempFilters"
                 >
                   <template #start>
                     <span v-if="!visibleFilters.indexOf(filter)" class="flex items-center nc-filter-where-label ml-1">{{
@@ -1033,6 +1042,7 @@ defineExpose({
                 :disable-smartsheet="!!widget || !!workflow"
                 :disabled="filter.readOnly || isLockedView || readOnly"
                 :meta="meta"
+                :show-all-columns="filter.readOnly || isLockedView || readOnly"
                 @click.stop
                 @change="selectFilterField(filter, i)"
               />

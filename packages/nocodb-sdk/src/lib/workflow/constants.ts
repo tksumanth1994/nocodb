@@ -14,6 +14,20 @@ export enum TriggerActivationType {
   NONE = 'none', // Manual triggers - no activation needed
   WEBHOOK = 'webhook', // External webhooks (GitHub, GitLab, etc.)
   CRON = 'cron', // Scheduled/cron-based
+  POLLING = 'polling', // Polling-based triggers for services without webhooks
+}
+
+/**
+ * Trigger test modes determine how a trigger can be tested
+ * A trigger can support multiple test modes (array)
+ */
+export enum TriggerTestMode {
+  /** Use sample/mock data for testing (default) */
+  SAMPLE_DATA = 'sample_data',
+  /** Create temporary webhook URL and wait for real request */
+  LISTEN_WEBHOOK = 'listen_webhook',
+  /** User must trigger event on external service (GitHub, Stripe, etc.) */
+  TRIGGER_EVENT = 'trigger_event',
 }
 
 /**

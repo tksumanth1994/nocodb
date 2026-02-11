@@ -450,9 +450,7 @@ export class ColumnsService implements IColumnsService {
     const isSyncedColumn = table.synced && column.readonly;
 
     if (context.schema_locked) {
-      NcError.get(context).schemaLocked(
-        'Schema modifications are not allowed on installed sandbox bases',
-      );
+      NcError.get(context).schemaLocked();
     }
 
     const source = await reuseOrSave('source', reuse, async () =>
@@ -658,8 +656,12 @@ export class ColumnsService implements IColumnsService {
       // Check if disabling unique constraint (always allowed)
       if (!param.column.unique && column.unique) {
         // Disabling is allowed, no validation needed
+      }
+      // if previous and existing are unique, no need to validate
+      else if (param.column.unique && column.unique) {
+        // no validation needed
       } else if (param.column.unique) {
-        // Enabling or keeping unique constraint enabled
+        // Enabling unique constraint enabled
         validateUniqueConstraint(
           context,
           (param.column.uidt || column.uidt) as UITypes,
@@ -2179,7 +2181,16 @@ export class ColumnsService implements IColumnsService {
         }
       }
 
+      const originalCdf = colBody.cdf;
       colBody = await getColumnPropsFromUIDT(colBody, source);
+
+      if (
+        typeof colBody.cdf !== 'undefined' &&
+        typeof originalCdf === 'undefined'
+      ) {
+        // do not override cdf when request is undefined
+        colBody.cdf = originalCdf;
+      }
 
       await this.updateMetaAndDatabase(context, {
         table,
@@ -2475,9 +2486,7 @@ export class ColumnsService implements IColumnsService {
     );
 
     if (context.schema_locked) {
-      NcError.get(context).schemaLocked(
-        'Schema modifications are not allowed on installed sandbox bases',
-      );
+      NcError.get(context).schemaLocked();
     }
 
     const source = await reuseOrSave('source', reuse, async () =>
@@ -3369,9 +3378,7 @@ export class ColumnsService implements IColumnsService {
     );
 
     if (context.schema_locked) {
-      NcError.get(context).schemaLocked(
-        'Schema modifications are not allowed on installed sandbox bases',
-      );
+      NcError.get(context).schemaLocked();
     }
 
     // check if source is readonly and column type is not allowed

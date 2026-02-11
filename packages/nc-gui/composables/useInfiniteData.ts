@@ -597,6 +597,9 @@ export function useInfiniteData(args: {
         const count = aggCommentCount?.find((c: Record<string, any>) => c.row_id === id)?.count || 0
         cachedRow.rowMeta.commentCount = +count
       })
+
+      // Trigger re-render canvas to update the comment count
+      eventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
     } catch (e) {
       console.error('Failed to load aggregate comment count:', e)
     }
@@ -643,10 +646,15 @@ export function useInfiniteData(args: {
       const response = !isPublic?.value
         ? await $api.dbViewRow.list('noco', base.value.id!, meta.value!.id!, viewMeta.value!.id!, {
             ...params,
-            ...(isUIAllowed('sortSync') ? {} : { sortArrJson: stringifyFilterOrSortArr(sorts.value) }),
+            ...(isUIAllowed('sortSync') ? {} : { sortArrJson: stringifyFilterOrSortArr(sorts.value?.filter((s) => !s.id)) }),
             ...(isUIAllowed('filterSync')
               ? { filterArrJson: stringifyFilterOrSortArr(jsonWhereFilterArr) }
-              : { filterArrJson: stringifyFilterOrSortArr([...(nestedFilters.value || []), ...jsonWhereFilterArr]) }),
+              : {
+                  filterArrJson: stringifyFilterOrSortArr([
+                    ...(nestedFilters.value || []).filter((f) => !f.id),
+                    ...jsonWhereFilterArr,
+                  ]),
+                }),
             includeSortAndFilterColumns: true,
             where: whereFilter,
             include_row_color: true,

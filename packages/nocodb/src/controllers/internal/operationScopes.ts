@@ -34,6 +34,9 @@ export const OPERATION_SCOPES = {
   widgetFilterList: 'base',
   formViewGet: 'base',
   mapViewGet: 'base',
+  // Extensions
+  extensionList: 'base',
+  extensionRead: 'base',
 
   // UI Post Operations
   tableUpdate: 'base',
@@ -87,6 +90,7 @@ export const OPERATION_SCOPES = {
   widgetFilterCreate: 'base',
   linkFilterCreate: 'base',
   rowColorConditionsFilterCreate: 'base',
+  dataExport: 'base',
 
   nestedDataList: 'base',
   nestedDataLink: 'base',
@@ -103,6 +107,8 @@ export const OPERATION_SCOPES = {
   commentResolve: 'base',
   dataList: 'base',
   linkDataList: 'base',
+  dataInsert: 'base',
+  dataUpdate: 'base',
   dataDelete: 'base',
   dataDeleteAll: 'base',
   bulkDataDeleteAll: 'base',
@@ -114,21 +120,27 @@ export const OPERATION_SCOPES = {
   syncSourceDelete: 'base',
   atImportTrigger: 'base',
 
-  // Sandbox Operations
-  sandboxStoreList: 'org',
-  sandboxList: 'workspace',
-  sandboxGet: 'org',
-  sandboxCreate: 'workspace',
-  sandboxUpdate: 'base',
-  sandboxDelete: 'base',
-  sandboxPublish: 'base',
-  sandboxCreateDraft: 'base',
-  sandboxUnpublish: 'base',
-  sandboxInstall: 'workspace',
-  sandboxGetUpdates: 'base',
-  sandboxVersionsList: 'base',
-  sandboxInstallationsList: 'base',
-  sandboxDeployments: 'base',
-  sandboxVersionDeployments: 'base',
-  sandboxDeploymentLogs: 'base',
+  // Extensions
+  extensionCreate: 'base',
+  extensionUpdate: 'base',
+  extensionDelete: 'base',
+
+  // Managed App Operations
+  managedAppStoreList: 'org',
+  managedAppGet: 'org',
+  managedAppVersionsList: 'org',
+  managedAppList: 'workspace',
+  managedAppCreate: 'workspace',
+  managedAppUpdate: 'base',
+  managedAppDelete: 'base',
+  managedAppPublish: 'base',
+  managedAppCreateDraft: 'base',
+  managedAppDiscardDraft: 'base',
+  managedAppUnpublish: 'base',
+  managedAppInstall: 'workspace',
+  managedAppGetUpdates: 'base',
+  managedAppInstallationsList: 'base',
+  managedAppDeployments: 'base',
+  managedAppVersionDeployments: 'base',
+  managedAppDeploymentLogs: 'base',
 } as const;

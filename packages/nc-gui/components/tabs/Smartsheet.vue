@@ -22,9 +22,6 @@ const { ncNavigateTo } = useGlobal()
 
 const route = useRoute()
 
-const { handleSidebarOpenOnMobileForNonViews } = useConfigStore()
-const { activeTableId } = storeToRefs(useTablesStore())
-
 const { activeProjectId } = storeToRefs(useBases())
 
 const { activeWorkspaceId } = storeToRefs(useWorkspace())
@@ -184,10 +181,6 @@ const onDrop = async (event: DragEvent) => {
   }
 }
 
-watch([activeViewTitleOrId, activeTableId], () => {
-  handleSidebarOpenOnMobileForNonViews()
-})
-
 const { leftSidebarWidth, windowSize, isFullScreen } = storeToRefs(useSidebarStore())
 
 const { isPanelExpanded, extensionPanelSize } = useExtensions()
@@ -295,23 +288,23 @@ watch(isViewsLoading, async () => {
           @resized="onResized"
         >
           <Pane class="flex flex-col h-full min-w-0" :max-size="contentMaxSize" :size="contentSize">
-            <LazySmartsheetToolbar v-if="!isForm" show-full-screen-toggle />
+            <SmartsheetToolbar v-if="!isForm" show-full-screen-toggle />
             <div :style="{ height: isForm ? '100%' : 'calc(100% - var(--toolbar-height))' }" class="flex flex-row w-full">
               <Transition name="layout" mode="out-in">
                 <div v-if="openedViewsTab === 'view'" class="flex flex-1 min-h-0 w-3/4">
                   <div class="h-full flex-1 min-w-0 min-h-0 bg-nc-bg-default">
-                    <LazySmartsheetGrid v-if="isGrid || !meta || !activeView" ref="grid" />
+                    <SmartsheetGrid v-if="isGrid || !meta || !activeView" ref="grid" />
 
                     <template v-if="activeView && meta">
-                      <LazySmartsheetGallery v-if="isGallery" />
+                      <SmartsheetGallery v-if="isGallery" />
 
-                      <LazySmartsheetForm v-else-if="isForm && !$route.query.reload" />
+                      <SmartsheetForm v-else-if="isForm && !$route.query.reload" />
 
                       <SmartsheetKanbanWrapper v-else-if="isKanban" />
 
-                      <LazySmartsheetCalendar v-else-if="isCalendar" />
+                      <SmartsheetCalendar v-else-if="isCalendar" />
 
-                      <LazySmartsheetMap v-else-if="isMap" />
+                      <SmartsheetMap v-else-if="isMap" />
                     </template>
                   </div>
                 </div>

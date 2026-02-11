@@ -91,6 +91,7 @@ export type ExpandedFormModeType =
 export enum ExportTypes {
   EXCEL = 'excel',
   CSV = 'csv',
+  JSON = 'json',
 }
 
 export enum PluginCategory {
@@ -244,6 +245,7 @@ export enum NcErrorType {
   ERR_EXTENSION_NOT_FOUND = 'ERR_EXTENSION_NOT_FOUND',
   ERR_SCRIPT_NOT_FOUND = 'ERR_SCRIPT_NOT_FOUND',
   FIELD_UNIQUE_CONSTRAINT_VIOLATION = 'FIELD_UNIQUE_CONSTRAINT_VIOLATION',
+  ERR_METHOD_NOT_ALLOWED = 'ERR_METHOD_NOT_ALLOWED',
 
   // Workflow Errors
   ERR_WORKFLOW_EMPTY_NODE = 'ERR_WORKFLOW_EMPTY_NODE',
@@ -369,12 +371,12 @@ export enum BaseVersion {
   V3 = 3,
 }
 
-export enum SandboxVersionStatus {
+export enum ManagedAppVersionStatus {
   DRAFT = 'draft',
   PUBLISHED = 'published',
 }
 
-export enum SandboxVisibility {
+export enum ManagedAppVisibility {
   PUBLIC = 'public',
   PRIVATE = 'private',
   UNLISTED = 'unlisted',

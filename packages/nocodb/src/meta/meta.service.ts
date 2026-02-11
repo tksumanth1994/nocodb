@@ -131,9 +131,9 @@ export class MetaService {
       [MetaTable.INSTALLATIONS]: 'inst',
       [MetaTable.AUTOMATIONS]: 'aut',
       [MetaTable.AUTOMATION_EXECUTIONS]: 'auex',
-      [MetaTable.SANDBOXES]: 'sb',
-      [MetaTable.SANDBOX_VERSIONS]: 'sbv',
-      [MetaTable.SANDBOX_DEPLOYMENT_LOGS]: 'sbdl',
+      [MetaTable.MANAGED_APPS]: 'ma',
+      [MetaTable.MANAGED_APP_VERSIONS]: 'mav',
+      [MetaTable.MANAGED_APP_DEPLOYMENT_LOGS]: 'madl',
     };
 
     const prefix = prefixMap[target] || 'nc';
@@ -314,7 +314,15 @@ export class MetaService {
       };
       insertObj.push(tempObj);
     }
-    await this.knexConnection.batchInsert(target, insertObj);
+
+    const BATCH_SIZE =
+      this.knexConnection.client.config.client === 'sqlite3' ? 200 : 10000;
+    for (let i = 0; i < insertObj.length; i += BATCH_SIZE) {
+      await this.knexConnection.batchInsert(
+        target,
+        insertObj.slice(i, i + BATCH_SIZE),
+      );
+    }
 
     return insertObj;
   }
