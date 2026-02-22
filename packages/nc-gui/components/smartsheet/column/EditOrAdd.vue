@@ -116,6 +116,8 @@ const {
   showUpgradeToUseAiButtonField,
   blockAiButtonField,
   blockUnique,
+  blockColourField,
+  showUpgradeToUseColourField,
 } = useEeConfig()
 
 const { eventBus } = useSmartsheetStoreOrThrow()
@@ -140,7 +142,7 @@ const isKanban = inject(IsKanbanInj, ref(false))
 
 const readOnly = computed(() => props.readonly)
 
-const { isMysql, isDatabricks, isXcdbBase } = useBase()
+const { base, isMysql, isPg, isDatabricks, isXcdbBase } = useBase()
 
 const { canEnableUniqueConstraint, isUniqueConstraintSupportedType } = useUniqueConstraintHelpers()
 
@@ -164,6 +166,10 @@ const columnUidt = computed({
     }
 
     if (value === AIButton && showUpgradeToUseAiButtonField()) {
+      return
+    }
+
+    if (value === UITypes.Colour && showUpgradeToUseColourField()) {
       return
     }
 
@@ -230,6 +236,7 @@ const uiFilters = (t: UiTypesType) => {
   const showDeprecatedField = !t.deprecated || showDeprecated.value
 
   const showAiFields = [AIPrompt, AIButton].includes(t.name) ? isAiBetaFeaturesEnabled.value && !isEdit.value && isEeUI : true
+  const showColourField = t.name === UITypes.Colour ? isEeUI : true
   const isAllowToAddInFormView = isForm.value ? !isFormViewHiddenCol(t.name as UITypes) : true
 
   const showLTAR =
@@ -239,6 +246,10 @@ const uiFilters = (t: UiTypesType) => {
   if (column?.value?.uidt === UITypes.Formula) {
     formulaColumnTypeValid = [UITypes.SingleLineText].includes(t.name)
   }
+
+  // UUID is only supported for PostgreSQL databases
+  const showUUID = t.name !== UITypes.UUID || isPg(meta.value?.source_id)
+
   return (
     systemFiledNotEdited &&
     geoDataToggle &&
@@ -246,8 +257,10 @@ const uiFilters = (t: UiTypesType) => {
     showDeprecatedField &&
     isAllowToAddInFormView &&
     showAiFields &&
+    showColourField &&
     showLTAR &&
-    formulaColumnTypeValid
+    formulaColumnTypeValid &&
+    showUUID
   )
 }
 
@@ -337,6 +350,8 @@ const onSelectType = (uidt: UITypes | typeof AIButton | typeof AIPrompt, fromSea
   let preload
 
   if ((uidt === AIPrompt && blockAiPromptField.value) || (uidt === AIButton && blockAiButtonField.value)) return
+
+  if (uidt === UITypes.Colour && blockColourField.value) return
 
   if (fromSearchList && !isEdit.value && aiAutoSuggestMode.value) {
     onInit()
@@ -1333,6 +1348,7 @@ const unique = computed({
         />
         <SmartsheetColumnDurationOptions v-if="formState.uidt === UITypes.Duration" v-model:value="formState" />
         <SmartsheetColumnRatingOptions v-if="formState.uidt === UITypes.Rating" v-model:value="formState" />
+        <SmartsheetColumnColourOptions v-if="formState.uidt === UITypes.Colour" v-model:value="formState" />
         <SmartsheetColumnCheckboxOptions v-if="formState.uidt === UITypes.Checkbox" v-model:value="formState" />
         <SmartsheetColumnLookupOptions v-if="formState.uidt === UITypes.Lookup" v-model:value="formState" />
         <SmartsheetColumnDateOptions v-if="formState.uidt === UITypes.Date" v-model:value="formState" />
@@ -1397,6 +1413,7 @@ const unique = computed({
                 isXcdbBase(meta?.source_id) &&
                 !isVirtualCol(formState) &&
                 isUniqueConstraintSupportedType(formState.uidt, formState.meta) &&
+                !isUUID(formState) &&
                 isEeUI
               "
               class="flex"
@@ -1474,7 +1491,8 @@ const unique = computed({
                 !(isMysql(meta?.source_id) && (isJSON(formState) || isTextArea(formState))) &&
                 !isDatabricks(meta?.source_id) &&
                 formState.unique &&
-                !isAI(formState)
+                !isAI(formState) &&
+                !isUUID(formState)
               "
               title="Cannot set default value as Unique constraint is set. Please disable unique constraint to configure default value"
               placement="right"
@@ -1492,7 +1510,8 @@ const unique = computed({
                 !isAttachment(formState) &&
                 !(isMysql(meta?.source_id) && (isJSON(formState) || isTextArea(formState))) &&
                 !isDatabricks(meta?.source_id) &&
-                !isAI(formState)
+                !isAI(formState) &&
+                !isUUID(formState)
               "
               v-model:value="formState"
               v-model:is-visible-default-value-input="isVisibleDefaultValueInput"

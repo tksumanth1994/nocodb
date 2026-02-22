@@ -193,6 +193,8 @@ import NcCellAttachment from '~icons/nc-icons/cell-attachment'
 import NcCellButton from '~icons/nc-icons/cell-button'
 import NcCellAiButton from '~icons/nc-icons/cell-ai-button'
 import NcCellAi from '~icons/nc-icons/cell-ai'
+import NcCellColour from '~icons/nc-icons/cell-colour'
+import NcCellUuid from '~icons/nc-icons/cell-uuid'
 
 import NcCircleCheck from '~icons/nc-icons/circle-check'
 import OnetoOneIcon from '~icons/nc-icons/onetoone'
@@ -516,6 +518,8 @@ import NcLinkedinIcon from '~icons/nc-icons-v2/linkedin.svg'
 import NcVideoIcon from '~icons/nc-icons-v2/video.svg'
 import NcActivityIcon from '~icons/nc-icons-v2/activity.svg'
 import NcMapPinIcon from '~icons/nc-icons-v2/map-pin.svg'
+import NcPinIcon from '~icons/nc-icons-v2/pin.svg'
+import NcPinOffIcon from '~icons/nc-icons-v2/pin-off.svg'
 import NcFilterIcon from '~icons/nc-icons-v2/filter.svg'
 import NcPhoneIncomingIcon from '~icons/nc-icons-v2/phone-incoming.svg'
 import NcItalicIcon from '~icons/nc-icons-v2/italic.svg'
@@ -998,9 +1002,11 @@ export const iconMap = {
   'cellPhone': NcCellPhone,
   'cellQrCode': NcCellQrCode,
   'cellRating': NcCellRating,
+  'cellColour': NcCellColour,
   'cellRollup': h(NcCellRollup, { stroke: 'transparent' }),
   'cellSingleSelect': NcCellSingleSelect,
   'cellText': NcCellText,
+  'cellUuid': NcCellUuid,
   'cellTime': NcCellTime,
   'cellUrl': NcCellUrl,
   'cellUser': NcCellUser,
@@ -1563,6 +1569,8 @@ export const iconMap = {
   'ncVideo': NcVideoIcon,
   'ncActivity': NcActivityIcon,
   'ncMapPin': NcMapPinIcon,
+  'ncPin': NcPinIcon,
+  'ncPinOff': NcPinOffIcon,
   'ncFilter': NcFilterIcon,
   'ncPhoneIncoming': NcPhoneIncomingIcon,
   'ncItalic': NcItalicIcon,
@@ -4033,6 +4041,14 @@ export const searchableMap = {
   ncMapPin: {
     icon: NcMapPinIcon,
     keywords: ['location', 'navigation', 'marker', 'geography', 'pinpoint'],
+  },
+  ncPin: {
+    icon: NcPinIcon,
+    keywords: ['pin', 'attach', 'stick', 'thumbtack', 'pushpin'],
+  },
+  ncPinOff: {
+    icon: NcPinOffIcon,
+    keywords: ['unpin', 'detach', 'remove pin', 'unstick'],
   },
   ncFilter: {
     icon: NcFilterIcon,

@@ -584,18 +584,23 @@ async function checkForCircularFormulaRef(
     }
 
     if (ltarColumn) {
-      const relatedTableMeta = await getMeta(
-        unifiedMeta.getContextFromObject({
+      const ltarColumnContext = unifiedMeta.getContextFromObject({
+          ...ltarColumn,
+          base_id: ltarColumn.base_id,
+        });
+      const ltarColOptions = await unifiedMeta.getColOptions<UnifiedMetaType.ILinkToAnotherRecordColumn>(ltarColumnContext, {column: ltarColumn})
+      const relatedColumnContext = unifiedMeta.getContextFromObject({
           ...ltarColumn,
           base_id:
             (ltarColumn.colOptions as LinkToAnotherRecordType)
               .fk_related_base_id ?? ltarColumn.base_id,
-        }),
+        });
+      const relatedTableMeta = await unifiedMeta.getLTARRelatedTable(relatedColumnContext,
         {
-          id: (ltarColumn.colOptions as LinkToAnotherRecordType)
-            .fk_related_model_id,
+          colOptions: ltarColOptions,
+          getMeta
         }
-      );
+      )
       const lookupTarget = (
         await unifiedMeta.getColumns(
           unifiedMeta.getContextFromObject(relatedTableMeta),

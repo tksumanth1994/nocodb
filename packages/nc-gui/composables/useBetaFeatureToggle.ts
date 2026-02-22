@@ -3,6 +3,14 @@ import rfdc from 'rfdc'
 const deepClone = rfdc()
 const FEATURES = [
   {
+    id: 'sandbox',
+    title: 'Sandbox',
+    description: 'Allow users to create sandbox environments for testing schema changes before merging.',
+    enabled: false,
+    isEngineering: true,
+    isAdvanced: true,
+  },
+  {
     id: 'managed_apps',
     title: 'Managed Apps',
     description: 'Allow users to create replicable managed app environments',
@@ -186,6 +194,15 @@ const FEATURES = [
     id: 'workflows_tab',
     title: 'Workflows tab',
     description: 'Enable workflows tab in base overview to manage workflows.',
+    enabled: false,
+    version: 1,
+    isEngineering: true,
+    isEE: true,
+  },
+  {
+    id: 'scim',
+    title: 'SCIM Provisioning',
+    description: 'Enable SCIM v2.0 for automatic user and group provisioning from identity providers.',
     enabled: false,
     version: 1,
     isEngineering: true,

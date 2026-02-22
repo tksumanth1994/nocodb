@@ -14,6 +14,11 @@ import * as nc_013_composite_pk_missing_tables from './v0/nc_013_composite_pk_mi
 import * as nc_014_sandboxes from './v0/nc_014_sandboxes';
 import * as nc_015_managed_apps from './v0/nc_015_managed_apps';
 import * as nc_016_automation_error_notifications from './v0/nc_016_automation_error_notifications';
+import * as nc_017_add_canonical_email_to_users from './v0/nc_017_add_canonical_email_to_users';
+import * as nc_018_add_enabled_to_filter_exp_v2 from './v0/nc_018_add_enabled_to_filter_exp_v2';
+import * as nc_019_sandboxes from './v0/nc_019_sandboxes';
+import * as nc_020_add_cell_coloring_fields_to_row_color_conditions from './v0/nc_020_add_cell_coloring_fields_to_row_color_conditions';
+import * as nc_021_scim_support from './v0/nc_021_scim_support';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev0 {
@@ -39,6 +44,11 @@ export default class XcMigrationSourcev0 {
       'nc_014_sandboxes',
       'nc_015_managed_apps',
       'nc_016_automation_error_notifications',
+      'nc_017_add_canonical_email_to_users',
+      'nc_018_add_enabled_to_filter_exp_v2',
+      'nc_019_sandboxes',
+      'nc_020_add_cell_coloring_fields_to_row_color_conditions',
+      'nc_021_scim_support',
     ]);
   }
 
@@ -79,7 +89,17 @@ export default class XcMigrationSourcev0 {
       case 'nc_015_managed_apps':
         return nc_015_managed_apps;
       case 'nc_016_automation_error_notifications':
-        return nc_016_automation_error_notifications
+        return nc_016_automation_error_notifications;
+      case 'nc_017_add_canonical_email_to_users':
+        return nc_017_add_canonical_email_to_users;
+      case 'nc_018_add_enabled_to_filter_exp_v2':
+        return nc_018_add_enabled_to_filter_exp_v2;
+      case 'nc_019_sandboxes':
+        return nc_019_sandboxes;
+      case 'nc_020_add_cell_coloring_fields_to_row_color_conditions':
+        return nc_020_add_cell_coloring_fields_to_row_color_conditions;
+      case 'nc_021_scim_support':
+        return nc_021_scim_support;
     }
   }
 }

@@ -109,6 +109,8 @@ export enum MetaTable {
   MANAGED_APP_VERSIONS = 'nc_managed_app_versions',
   MANAGED_APP_DEPLOYMENT_LOGS = 'nc_managed_app_deployment_logs',
   AUTOMATION_SUBSCRIBERS = 'nc_automation_subscribers',
+  SANDBOXES = 'nc_sandboxes_v2',
+  SCIM_CONFIG = 'nc_scim_config',
 }
 
 export const BaseRelatedMetaTables = [
@@ -335,6 +337,8 @@ export enum CacheScope {
   MANAGED_APP_DEPLOYMENT_LOG = 'managedAppDeploymentLog',
   SUBSCRIPTIONS_ALIAS = 'subscriptionsAlias',
   AUTOMATION_SUBSCRIBER = 'automationSubscriber',
+  SANDBOX = 'sandbox',
+  SCIM_CONFIG = 'scimConfig',
 }
 
 export enum CacheGetType {
@@ -385,6 +389,7 @@ export const RootScopeTables = {
     MetaTable.MANAGED_APPS,
     MetaTable.MANAGED_APP_VERSIONS,
     MetaTable.MANAGED_APP_DEPLOYMENT_LOGS,
+    MetaTable.SANDBOXES,
     // Temporarily added need to be discussed within team
     MetaTable.AUDIT,
     MetaTable.CUSTOM_URLS,
@@ -408,6 +413,7 @@ export const RootScopeTables = {
     MetaTable.COL_LONG_TEXT,
 
     MetaTable.PRINCIPAL_ASSIGNMENTS,
+    MetaTable.SCIM_CONFIG,
   ],
   [RootScopes.BASE]: [MetaTable.PROJECT],
 };

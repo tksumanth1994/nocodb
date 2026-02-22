@@ -8,11 +8,15 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
 
   const { $api, $e, $eventBus } = useNuxtApp()
 
-  const { isUIAllowed } = useRoles()
-
   const { isSharedBase } = storeToRefs(useBase())
 
+  const { hasPersonalViewPermission } = usePersonalViewPermissions(view)
+
   const { addUndo, clone, defineViewScope } = useUndoRedo()
+
+  const canSyncSort = hasPersonalViewPermission('sortSync')
+
+  const canListSort = hasPersonalViewPermission('sortList')
 
   const reloadHook = inject(ReloadViewDataHookInj)
 
@@ -38,7 +42,7 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
     }
 
     try {
-      if (!isUIAllowed('sortList')) {
+      if (!canListSort.value) {
         return
       }
       if (!view?.value || !meta.value) return
@@ -103,7 +107,7 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
     }
 
     try {
-      if (isUIAllowed('sortSync')) {
+      if (canSyncSort.value) {
         if (sort.id) {
           await $api.internal.postOperation(
             meta.value!.fk_workspace_id!,
@@ -151,7 +155,7 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
       const existingSortIndex = sorts.value.findIndex((s) => s.fk_column_id === column.id)
       const existingSort = existingSortIndex > -1 ? sorts.value[existingSortIndex] : undefined
 
-      const isLocalMode = isPublic.value || isSharedBase.value || !isUIAllowed('sortSync')
+      const isLocalMode = isPublic.value || isSharedBase.value || !canSyncSort.value
       // Delete existing sort and not update the state as sort count in UI will change for a sec
       if (existingSort && !isLocalMode) {
         await $api.internal.postOperation(
@@ -244,7 +248,7 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
 
   async function deleteSort(sort: SortType, i: number, undo = false) {
     try {
-      const isLocalMode = isPublic.value || isSharedBase.value || !isUIAllowed('sortSync')
+      const isLocalMode = isPublic.value || isSharedBase.value || !canSyncSort.value
       if (sort.id && !isLocalMode) {
         await $api.internal.postOperation(
           meta.value!.fk_workspace_id!,
@@ -346,5 +350,5 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
     $eventBus.realtimeViewMetaEventBus.off(evtListener)
   })
 
-  return { sorts, loadSorts, addSort, deleteSort, saveOrUpdate, insertSort }
+  return { sorts, loadSorts, addSort, deleteSort, saveOrUpdate, insertSort, canSyncSort }
 }

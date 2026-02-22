@@ -22345,7 +22345,9 @@
               "LastModifiedBy",
               "AI",
               "Order",
-              "Meta"
+              "Meta",
+              "Colour",
+              "UUID"
             ],
             "type": "string"
           },
@@ -22827,6 +22829,10 @@
             "type": "number",
             "description": "The order of the filter",
             "example": 1
+          },
+          "enabled": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Whether this filter is enabled. Disabled filters are skipped during evaluation."
           }
         },
         "readOnly": true,
@@ -23138,6 +23144,10 @@
           },
           "value": {
             "description": "The filter value. Can be NULL for some operators."
+          },
+          "enabled": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Whether this filter is enabled. Disabled filters are skipped during evaluation."
           }
         },
         "readOnly": true
@@ -26216,7 +26226,9 @@
               "LastModifiedBy",
               "AI",
               "Order",
-              "Meta"
+              "Meta",
+              "Colour",
+              "UUID"
             ],
             "type": "string",
             "description": "UI Data Type"
@@ -26799,6 +26811,14 @@
                 "granted_type"
               ]
             }
+          },
+          "is_sandbox": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Indicates if the base is a sandbox"
+          },
+          "is_sandbox_master": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Indicates if the base is a sandbox master"
           }
         },
         "x-stoplight": {

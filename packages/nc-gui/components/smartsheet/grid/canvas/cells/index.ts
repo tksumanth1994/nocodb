@@ -1,5 +1,5 @@
 import { type ColumnType, type TableType, UITypes, type UserType, type ViewType, isAIPromptCol } from 'nocodb-sdk'
-import { renderSingleLineText, renderSpinner, roundedRect } from '../utils/canvas'
+import { renderSingleLineText, renderSpinner, renderTag, roundedRect } from '../utils/canvas'
 import type { ActionManager } from '../loaders/ActionManager'
 import type { ImageWindowLoader } from '../loaders/ImageLoader'
 import type { MarkdownLoader } from '../loaders/markdownLoader'
@@ -26,6 +26,7 @@ import { JsonCellRenderer } from './Json'
 import { BarcodeCellRenderer } from './Barcode'
 import { QRCodeCellRenderer } from './QRCode'
 import { RatingCellRenderer } from './Rating'
+import { ColourCellRenderer } from './Colour'
 import { UserFieldCellRenderer } from './User'
 import { SingleSelectCellRenderer } from './SingleSelect'
 import { MultiSelectCellRenderer } from './MultiSelect'
@@ -35,6 +36,7 @@ import { LookupCellRenderer } from './Lookup'
 import { ButtonCellRenderer } from './Button'
 import { LtarCellRenderer } from './LTAR'
 import { FormulaCellRenderer } from './Formula'
+import { UUIDCellRenderer } from './UUID'
 import { GenericReadOnlyRenderer } from './GenericReadonlyRenderer'
 import { NullCellRenderer } from './Null'
 import { PlainCellRenderer } from './Plain'
@@ -73,7 +75,7 @@ export function useGridCellHandler(params: {
 
   const { isColumnSortedOrFiltered, appearanceConfig: filteredOrSortedAppearanceConfig } = useColumnFilteredOrSorted()
 
-  const { isRowColouringEnabled } = useViewRowColorRender()
+  const { isRowColouringEnabled, isCellColouringEnabled, getEvaluatedCellColorInfo } = useViewRowColorRender()
 
   const { getColor, isDark } = useTheme()
 
@@ -123,6 +125,7 @@ export function useGridCellHandler(params: {
   cellTypesRegistry.set(UITypes.Barcode, BarcodeCellRenderer)
   cellTypesRegistry.set(UITypes.QrCode, QRCodeCellRenderer)
   cellTypesRegistry.set(UITypes.Rating, RatingCellRenderer)
+  cellTypesRegistry.set(UITypes.Colour, ColourCellRenderer)
   cellTypesRegistry.set(UITypes.User, UserFieldCellRenderer)
   cellTypesRegistry.set(UITypes.CreatedBy, UserFieldCellRenderer)
   cellTypesRegistry.set(UITypes.LastModifiedBy, UserFieldCellRenderer)
@@ -136,6 +139,7 @@ export function useGridCellHandler(params: {
   cellTypesRegistry.set(UITypes.Formula, FormulaCellRenderer)
   cellTypesRegistry.set(UITypes.Geometry, SingleLineTextCellRenderer)
   cellTypesRegistry.set(UITypes.SpecificDBType, SingleLineTextCellRenderer)
+  cellTypesRegistry.set(UITypes.UUID, UUIDCellRenderer)
   cellTypesRegistry.set(UITypes.ForeignKey, GenericReadOnlyRenderer)
   cellTypesRegistry.set(UITypes.ID, GenericReadOnlyRenderer)
 
@@ -218,15 +222,35 @@ export function useGridCellHandler(params: {
           },
         })
       } else if (!rowMeta?.isValidationFailed && isRootCell) {
-        const rowColor =
-          rowMeta?.is_set_as_background &&
-          (selected || isRowHovered || isRowChecked || isCellInSelectionRange || isRowCellSelected)
-            ? rowMeta?.rowHoverColor
-            : rowMeta?.rowBgColor
+        // First check for cell-specific coloring
+        const cellColorInfo = isCellColouringEnabled.value ? getEvaluatedCellColorInfo(row, column.id) : null
 
-        if (rowColor) {
+        let backgroundColorToRender: string | null = null
+        let hoverColorToRender: string | null = null
+
+        if (cellColorInfo?.cellBgColor) {
+          // Cell-specific background color takes precedence
+          backgroundColorToRender = cellColorInfo.cellBgColor
+          hoverColorToRender = cellColorInfo.cellHoverColor
+        } else if (!cellColorInfo?.cellLeftBorderColor) {
+          // Fall back to row coloring only if no cell-specific color at all
+          const rowColor =
+            rowMeta?.is_set_as_background &&
+            (selected || isRowHovered || isRowChecked || isCellInSelectionRange || isRowCellSelected)
+              ? rowMeta?.rowHoverColor
+              : rowMeta?.rowBgColor
+          backgroundColorToRender = rowColor
+        }
+
+        // Apply the final background color (cell or row)
+        const finalColor =
+          selected || isRowHovered || isRowChecked || isCellInSelectionRange || isRowCellSelected
+            ? hoverColorToRender || backgroundColorToRender
+            : backgroundColorToRender
+
+        if (finalColor) {
           roundedRect(ctx, x, y, width, height, 0, {
-            backgroundColor: rowColor,
+            backgroundColor: finalColor,
             borderColor: getColor(themeV4Colors.gray['200']),
             borderWidth: 0.4,
             borders: {
@@ -235,6 +259,21 @@ export function useGridCellHandler(params: {
               bottom: true,
               left: true,
             },
+          })
+        }
+
+        // Render cell left-border indicator when not in background mode
+        if (cellColorInfo?.cellLeftBorderColor && !cellColorInfo.is_set_as_background) {
+          const cellBorderHeight = height - 8
+          renderTag(ctx, {
+            x: x + 2,
+            radius: 4,
+            y: y + (height - cellBorderHeight) / 2,
+            height: cellBorderHeight,
+            width: 3,
+            fillStyle: cellColorInfo.cellLeftBorderColor,
+            borderColor: cellColorInfo.cellLeftBorderColor,
+            borderWidth: 0,
           })
         }
       }

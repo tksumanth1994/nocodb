@@ -67,7 +67,7 @@ export function useViewFilters(
 
   const { $api, $e, $eventBus } = useNuxtApp()
 
-  const { isUIAllowed } = useRoles()
+  const { hasPersonalViewPermission } = usePersonalViewPermissions(view)
 
   const { getMeta, getMetaByKey } = useMetas()
 
@@ -77,7 +77,13 @@ export function useViewFilters(
 
   const _filters = ref<ColumnFilterType[]>([...(currentFilters.value || [])])
 
-  const nestedMode = computed(() => isTemp.value || !isUIAllowed('filterList') || !isUIAllowed('filterChildrenList'))
+  const canListFilter = hasPersonalViewPermission('filterList')
+
+  const canListFilterChildren = hasPersonalViewPermission('filterChildrenList')
+
+  const canSyncFilter = hasPersonalViewPermission('filterSync')
+
+  const nestedMode = computed(() => isTemp.value || !canListFilter.value || !canListFilterChildren.value)
 
   // Tracks if any filter has been updated - used for webhook save state management
   const isFilterUpdated = ref<boolean>(false)
@@ -283,6 +289,7 @@ export function useViewFilters(
       ...(parentColId?.value ? { fk_parent_column_id: parentColId.value } : {}),
       ...(widgetId?.value ? { fk_widget_id: widgetId.value } : {}),
       order: (filters.value.length ? Math.max(...filters.value.map((item) => item?.order ?? 0)) : 0) + 1,
+      enabled: true,
     }
 
     // Set timezone for DateTime columns
@@ -311,6 +318,7 @@ export function useViewFilters(
       ...(parentColId?.value ? { fk_parent_column_id: parentColId.value, children: [] } : {}),
       ...(widgetId?.value ? { fk_widget_id: widgetId.value } : {}),
       order: (filters.value.length ? Math.max(...filters.value.map((item) => item?.order ?? 0)) : 0) + 1,
+      enabled: true,
     }
   }
 
@@ -382,11 +390,7 @@ export function useViewFilters(
     }
 
     if (!view.value?.id || !meta.value) return
-    if (
-      (nestedMode.value && (isTemp.value || !isUIAllowed('filterChildrenList'))) ||
-      (isForm.value && !isWebhook) ||
-      isWorkflow
-    ) {
+    if ((nestedMode.value && (isTemp.value || !canListFilterChildren.value)) || (isForm.value && !isWebhook) || isWorkflow) {
       // ignore restoring if not root filter group
       return
     }
@@ -450,7 +454,7 @@ export function useViewFilters(
               })
             ).list as ColumnFilterType[]
           } else {
-            if (!isUIAllowed('filterList')) {
+            if (!canListFilter.value) {
               return
             }
 
@@ -514,6 +518,22 @@ export function useViewFilters(
               fk_parent_id: parentId.value,
             },
           )
+
+          // EE only: Sync updated filter properties to the smartsheet store's allFilters
+          // so PinnedFilters and other consumers see changes immediately
+          if (isEeUI && !isLink && !isWebhook && !isWidget) {
+            const storeFilter = allFilters.value.find((f) => f.id === filter.id)
+            if (storeFilter) {
+              Object.assign(storeFilter, {
+                value: filter.value,
+                comparison_op: filter.comparison_op,
+                comparison_sub_op: filter.comparison_sub_op,
+                fk_column_id: filter.fk_column_id,
+                enabled: filter.enabled,
+                meta: filter.meta,
+              })
+            }
+          }
         } else if (filter.status === 'create') {
           // extract children value if found to restore
           const children = filters.value[+i]?.children
@@ -621,7 +641,7 @@ export function useViewFilters(
 
         if (keys.length > 0) {
           // Define extra keys to track
-          const extraKeys = ['value', 'order', 'logical_op']
+          const extraKeys = ['value', 'order', 'logical_op', 'enabled']
 
           // Always include the 0th key + any of the extra ones present
           const targetKeys = Array.from(
@@ -697,6 +717,22 @@ export function useViewFilters(
           webHook: !!isWebhook,
           workflow: !!isWorkflow,
         })
+
+        // EE only: Sync updated filter to the smartsheet store's allFilters
+        // so PinnedFilters and other consumers see changes immediately
+        if (isEeUI && !isLink && !isWebhook && !isWidget) {
+          const storeFilter = allFilters.value.find((f) => f.id === filter.id)
+          if (storeFilter) {
+            Object.assign(storeFilter, {
+              value: filter.value,
+              comparison_op: filter.comparison_op,
+              comparison_sub_op: filter.comparison_sub_op,
+              fk_column_id: filter.fk_column_id,
+              enabled: filter.enabled,
+              meta: filter.meta,
+            })
+          }
+        }
 
         if (undo) {
           filters.value = [...filters.value].sort((a, b) => ncArrSortCallback(a, b, { key: 'order' }))
@@ -927,7 +963,10 @@ export function useViewFilters(
 
     filters.value.push(
       (draftFilter?.fk_column_id
-        ? { ...placeholderFilter(), ...normalizeFilterNode(draftFilter, ['order', 'logical_op']) }
+        ? // Strip only 'order' from the draft so it gets a fresh order from placeholderFilter.
+          // Preserve 'logical_op' from the draft when provided (e.g. AI-generated filters may use 'or'),
+          // otherwise normalizeFilterNode falls back to placeholderFilter's default.
+          { ...placeholderFilter(), ...normalizeFilterNode(draftFilter, ['order']) }
         : placeholderFilter()) as ColumnFilterType,
     )
     if (!undo && !(isForm.value && !isWebhook)) {
@@ -1146,5 +1185,6 @@ export function useViewFilters(
     btLookupTypesMap,
     types,
     isFilterUpdated,
+    canSyncFilter,
   }
 }

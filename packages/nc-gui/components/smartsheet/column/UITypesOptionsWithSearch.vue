@@ -12,7 +12,8 @@ const { options } = toRefs(props)
 
 const { isMetaReadOnly } = useRoles()
 
-const { showUpgradeToUseAiPromptField, showUpgradeToUseAiButtonField } = useEeConfig()
+const { showUpgradeToUseAiPromptField, showUpgradeToUseAiButtonField, showUpgradeToUseColourField, showUpgradeToUseUuidField } =
+  useEeConfig()
 
 const searchQuery = ref('')
 
@@ -53,6 +54,15 @@ const onClick = (uidt: UITypes) => {
     return
   }
 
+  if (uidt === UITypes.Colour && showUpgradeToUseColourField()) {
+    return
+  }
+
+  // EE-only: gate UUID field type behind plan feature flag
+  if (uidt === UITypes.UUID && showUpgradeToUseUuidField()) {
+    return
+  }
+
   emits('selected', uidt)
 }
 
@@ -86,7 +96,7 @@ const handleKeydownEnter = () => {
 
 onMounted(() => {
   searchQuery.value = ''
-  activeFieldIndex.value = options.value.findIndex((o) => o.name === UITypes.SingleLineText)
+  activeFieldIndex.value = options.value?.findIndex((o) => o.name === UITypes.SingleLineText) ?? -1
 })
 
 const { isSystem } = useColumnCreateStoreOrThrow()
@@ -123,7 +133,7 @@ const { isSystem } = useColumnCreateStoreOrThrow()
           alt="No search results found"
         />
 
-        {{ options.length ? $t('title.noResultsMatchedYourSearch') : 'The list is empty' }}
+        {{ options?.length ? $t('title.noResultsMatchedYourSearch') : 'The list is empty' }}
       </div>
       <GeneralSourceRestrictionTooltip
         v-for="(option, index) in filteredOptions"

@@ -190,6 +190,7 @@ const cellType = computed(() => {
   if (isAI(column.value)) return 'ai'
   if (isTextArea(column.value)) return 'textarea'
   if (isGeoData(column.value)) return 'geoData'
+  if (isUUID(column.value)) return 'uuid'
   if (isBoolean(column.value, abstractType.value)) return 'checkbox'
   if (isAttachment(column.value)) return 'attachment'
   if (isSingleSelect(column.value)) return 'singleSelect'
@@ -205,6 +206,7 @@ const cellType = computed(() => {
   if (isPhoneNumber(column.value)) return 'phoneNumber'
   if (isPercent(column.value)) return 'percent'
   if (isCurrency(column.value)) return 'currency'
+  if (isColour(column.value)) return 'colour'
   if (isUser(column.value)) return 'user'
   if (isDecimal(column.value)) return 'decimal'
   if (isInt(column.value, abstractType.value)) return 'integer'
@@ -238,6 +240,10 @@ const showReadonlyField = computed(() => {
     case 'checkbox':
     case 'rating': {
       return readOnly.value
+    }
+
+    case 'uuid': {
+      return true // UUID is always read-only
     }
 
     case 'singleSelect':
@@ -343,6 +349,8 @@ const cellClassName = computed(() => {
 
       <CellGeoData v-else-if="cellType === 'geoData'" v-model="vModel" />
 
+      <CellUUID v-else-if="cellType === 'uuid'" v-model="vModel" />
+
       <template v-else-if="cellType === 'checkbox'">
         <CellCheckboxReadonly v-if="showReadonlyField" :model-value="vModel" />
         <CellCheckboxEditor v-else v-model="vModel" />
@@ -441,6 +449,11 @@ const cellClassName = computed(() => {
       <template v-else-if="cellType === 'currency'">
         <CellCurrencyReadonly v-if="showReadonlyField" :model-value="vModel" />
         <CellCurrencyEditor v-else v-model="vModel" @save="emitSave" />
+      </template>
+
+      <template v-else-if="cellType === 'colour'">
+        <CellColourReadonly v-if="showReadonlyField" :model-value="vModel" />
+        <CellColourEditor v-else v-model="vModel" />
       </template>
 
       <LazyCellUser

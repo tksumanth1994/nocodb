@@ -32,8 +32,10 @@ export {
   isDuration,
   isGeoData,
   isPercent,
+  isColour,
   isSpecificDBType,
   isGeometry,
+  isUUID,
   isUser,
   isButton,
   isAiButton,
@@ -97,6 +99,7 @@ export const isShowNullField = (column: ColumnType) => {
     UITypes.Year,
     UITypes.Currency,
     UITypes.Formula,
+    UITypes.UUID,
   ].includes(column.uidt as UITypes)
 }
 

@@ -28,6 +28,7 @@ export enum PlanLimitTypes {
   LIMIT_SCRIPT_PER_WORKSPACE = 'limit_script',
   LIMIT_DASHBOARD_PER_WORKSPACE = 'limit_dashboard',
   LIMIT_TEAM_MANAGEMENT = 'limit_team_management',
+  LIMIT_SANDBOX_PER_BASE = 'limit_sandbox',
 }
 
 export enum PlanFeatureTypes {
@@ -56,6 +57,7 @@ export enum PlanFeatureTypes {
   FEATURE_WORKSPACE_CUSTOM_LOGO = 'feature_workspace_custom_logo',
   FEATURE_CURRENT_USER_FILTER = 'feature_current_user_filter',
   FEATURE_ROW_COLOUR = 'feature_row_colour',
+  FEATURE_CELL_COLOUR = 'feature_cell_colour',
   FEATURE_TABLE_AND_FIELD_PERMISSIONS = 'feature_table_and_field_permissions',
   FEATURE_PRIVATE_BASES = 'feature_private_bases',
   FEATURE_API_MEMBER_MANAGEMENT = 'feature_api_member_management',
@@ -65,12 +67,18 @@ export enum PlanFeatureTypes {
   FEATURE_CALENDAR_RANGE = 'feature_calendar_range',
   FEATURE_AI_PROMPT_FIELD = 'feature_ai_prompt_field',
   FEATURE_AI_BUTTON_FIELD = 'feature_ai_button_field',
+  FEATURE_COLOUR_FIELD = 'feature_colour_field',
   FEATURE_DUPLICATE_TABLE_TO_OTHER_BASE = 'feature_duplicate_table_to_other_base',
   FEATURE_DUPLICATE_TABLE_TO_OTHER_WS = 'feature_duplicate_table_to_other_ws',
   FEATURE_COPY_VIEW_SETTING_FROM_OTHER = 'feature_copy_view_setting_other',
   FEATURE_CARD_FIELD_HEADER_VISIBILITY = 'feature_card_field_header_visibility',
+  FEATURE_SCIM = 'feature_scim',
   FEATURE_SYNC = 'feature_sync',
   FEATURE_UNIQUE = 'feature_unique',
+  FEATURE_TOGGLE_FILTER = 'feature_toggle_filter',
+  FEATURE_PINNED_FILTER = 'feature_pinned_filter',
+  // EE-only UUID field type — gated by plan feature flag
+  FEATURE_UUID_FIELD = 'feature_uuid_field',
 }
 
 export enum PlanTitles {
@@ -229,6 +237,7 @@ export const PlanLimitUpgradeMessages: Record<PlanLimitTypes, string> = {
   [PlanLimitTypes.LIMIT_WORKFLOW_RUN]: 'to run more workflows.',
   [PlanLimitTypes.LIMIT_WORKFLOW_RETENTION]:
     'to increase workflow logs retention.',
+  [PlanLimitTypes.LIMIT_SANDBOX_PER_BASE]: 'to add more sandboxes.',
 };
 
 export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
@@ -267,6 +276,7 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_CURRENT_USER_FILTER]:
     'to filter view by current user',
   [PlanFeatureTypes.FEATURE_ROW_COLOUR]: 'to use row colouring.',
+  [PlanFeatureTypes.FEATURE_CELL_COLOUR]: 'to use cell colouring.',
   [PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS]:
     'to use table and field permissions.',
   [PlanFeatureTypes.FEATURE_PRIVATE_BASES]: 'to use private bases.',
@@ -279,6 +289,7 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
     'to visualize records in a calendar range.',
   [PlanFeatureTypes.FEATURE_AI_PROMPT_FIELD]: 'to use AI text fields.',
   [PlanFeatureTypes.FEATURE_AI_BUTTON_FIELD]: 'to use AI button fields.',
+  [PlanFeatureTypes.FEATURE_COLOUR_FIELD]: 'to use colour fields.',
   [PlanFeatureTypes.FEATURE_DUPLICATE_TABLE_TO_OTHER_BASE]:
     'to target different base when duplicate table.',
   [PlanFeatureTypes.FEATURE_DUPLICATE_TABLE_TO_OTHER_WS]:
@@ -287,8 +298,12 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
     'to copy view configuration from another view.',
   [PlanFeatureTypes.FEATURE_CARD_FIELD_HEADER_VISIBILITY]:
     'to hide field headers in Gallery and Kanban views.',
+  [PlanFeatureTypes.FEATURE_SCIM]: 'to enable SCIM provisioning.',
   [PlanFeatureTypes.FEATURE_SYNC]: 'to use sync feature.',
   [PlanFeatureTypes.FEATURE_UNIQUE]: 'to use unique constraint.',
+  [PlanFeatureTypes.FEATURE_TOGGLE_FILTER]: 'to enable or disable individual filters.',
+  [PlanFeatureTypes.FEATURE_PINNED_FILTER]: 'to pin filters to the toolbar.',
+  [PlanFeatureTypes.FEATURE_UUID_FIELD]: 'to use UUID fields.',
 };
 
 export const getUpgradeMessage = (
