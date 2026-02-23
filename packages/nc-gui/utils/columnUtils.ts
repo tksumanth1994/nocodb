@@ -30,6 +30,8 @@ export const AIButton = 'AIButton'
 
 export const AIPrompt = 'AIPrompt'
 
+export const AIField = 'AIField'
+
 export const LongTextAiMetaProp = _LongTextAiMetaProp
 
 const uiTypes: UiTypesType[] = [
@@ -43,6 +45,13 @@ const uiTypes: UiTypesType[] = [
   {
     name: AIPrompt,
     icon: iconMap.cellAi,
+    isNew: 1,
+    deprecated: 0,
+  },
+  {
+    name: AIField,
+    icon: iconMap.cellAi,
+    virtual: 1,
     isNew: 1,
     deprecated: 0,
   },

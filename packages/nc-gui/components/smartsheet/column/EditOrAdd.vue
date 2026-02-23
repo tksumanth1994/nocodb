@@ -18,7 +18,7 @@ import {
   isVirtualCol,
   readonlyMetaAllowedTypes,
 } from 'nocodb-sdk'
-import { LongTextAiMetaProp } from '~/utils/columnUtils'
+import { AIField, LongTextAiMetaProp } from '~/utils/columnUtils'
 import { AiWizardTabsType, type PredictedFieldType, type UiTypesType } from '#imports'
 import MdiPlusIcon from '~icons/mdi/plus-circle-outline'
 import MdiMinusIcon from '~icons/mdi/minus-circle-outline'
@@ -40,9 +40,10 @@ const props = defineProps<{
   editDescription?: boolean
   readonly?: boolean
   disableTitleFocus?: boolean
+  showAIFieldEnrichment?: boolean
 }>()
 
-const emit = defineEmits(['submit', 'cancel', 'mounted', 'add', 'update'])
+const emit = defineEmits(['submit', 'cancel', 'mounted', 'add', 'update', 'open-ai-enrichment'])
 
 const {
   formState,
@@ -236,6 +237,7 @@ const uiFilters = (t: UiTypesType) => {
   const showDeprecatedField = !t.deprecated || showDeprecated.value
 
   const showAiFields = [AIPrompt, AIButton].includes(t.name) ? isAiBetaFeaturesEnabled.value && !isEdit.value && isEeUI : true
+  const showAIFieldEnrichmentOption = t.name === AIField ? !!props.showAIFieldEnrichment && !isEdit.value : true
   const showColourField = t.name === UITypes.Colour ? isEeUI : true
   const isAllowToAddInFormView = isForm.value ? !isFormViewHiddenCol(t.name as UITypes) : true
 
@@ -257,6 +259,7 @@ const uiFilters = (t: UiTypesType) => {
     showDeprecatedField &&
     isAllowToAddInFormView &&
     showAiFields &&
+    showAIFieldEnrichmentOption &&
     showColourField &&
     showLTAR &&
     formulaColumnTypeValid &&
@@ -346,7 +349,12 @@ const handleScrollDebounce = useDebounceFn(() => {
   }
 }, 500)
 
-const onSelectType = (uidt: UITypes | typeof AIButton | typeof AIPrompt, fromSearchList = false) => {
+const onSelectType = (uidt: UITypes | typeof AIButton | typeof AIPrompt | typeof AIField, fromSearchList = false) => {
+  if (uidt === AIField) {
+    emit('open-ai-enrichment')
+    return
+  }
+
   let preload
 
   if ((uidt === AIPrompt && blockAiPromptField.value) || (uidt === AIButton && blockAiButtonField.value)) return

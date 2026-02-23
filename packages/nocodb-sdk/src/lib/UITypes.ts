@@ -106,6 +106,7 @@ export const UITypesName = {
   [UITypes.UUID]: 'UUID',
   AIButton: 'AI Button',
   AIPrompt: 'AI Text',
+  AIField: 'AI Field',
 };
 
 export const UITypesSearchTerms = {
@@ -245,6 +246,7 @@ export const UITypesSearchTerms = {
   ],
   AIButton: ['AI Button', 'AI action', 'smart button'],
   AIPrompt: ['AI Text', 'AI Prompt', 'AI field', 'smart field'],
+  AIField: ['AI Field', 'AI enrichment', 'AI columns'],
 };
 
 export const columnTypeName = (column?: ColumnType) => {

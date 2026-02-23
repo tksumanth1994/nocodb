@@ -11,15 +11,17 @@ interface Props {
   fromTableExplorer?: boolean
   isColumnValid?: (value: Partial<ColumnType>) => boolean
   disableTitleFocus?: boolean
+  showAIFieldEnrichment?: boolean
 }
 
 const props = defineProps<Props>()
 
-const emit = defineEmits(['submit', 'cancel', 'mounted'])
+const emit = defineEmits(['submit', 'cancel', 'mounted', 'open-ai-enrichment'])
 
 const meta = inject(MetaInj, ref())
 
-const { column, preload, tableExplorerColumns, fromTableExplorer, isColumnValid, editDescription } = toRefs(props)
+const { column, preload, tableExplorerColumns, fromTableExplorer, isColumnValid, editDescription, showAIFieldEnrichment } =
+  toRefs(props)
 
 const { isSaving } = useProvideColumnCreateStore(meta, column, tableExplorerColumns, fromTableExplorer, isColumnValid)
 
@@ -50,8 +52,10 @@ defineExpose({
     :edit-description="editDescription"
     :from-table-explorer="props.fromTableExplorer || false"
     :disable-title-focus="disableTitleFocus"
+    :show-a-i-field-enrichment="showAIFieldEnrichment"
     @submit="emit('submit', $event)"
     @cancel="emit('cancel')"
     @mounted="emit('mounted')"
+    @open-ai-enrichment="emit('open-ai-enrichment')"
   />
 </template>

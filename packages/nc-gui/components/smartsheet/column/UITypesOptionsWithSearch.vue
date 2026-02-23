@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { UITypes, UITypesName, UITypesSearchTerms, readonlyMetaAllowedTypes } from 'nocodb-sdk'
+import { AIButton, AIField, AIPrompt } from '~/utils/columnUtils'
 
 const props = defineProps<{
   options: typeof uiTypes
@@ -137,7 +138,7 @@ const { isSystem } = useColumnCreateStoreOrThrow()
       </div>
       <GeneralSourceRestrictionTooltip
         v-for="(option, index) in filteredOptions"
-        :key="index"
+        :key="option.name"
         :message="$t('tooltip.typeNotAllowed')"
         :enabled="isDisabledUIType(option.name)"
       >
@@ -149,7 +150,7 @@ const { isSystem } = useColumnCreateStoreOrThrow()
               'hover:bg-nc-bg-gray-light cursor-pointer': !isDisabledUIType(option.name),
               'bg-nc-bg-gray-light nc-column-list-option-active': activeFieldIndex === index && !isDisabledUIType(option.name),
               '!text-nc-content-gray-disabled cursor-not-allowed': isDisabledUIType(option.name),
-              '!text-nc-content-purple-dark': [AIButton, AIPrompt].includes(option.name),
+              '!text-nc-content-purple-dark': [AIButton, AIPrompt, AIField].includes(option.name),
             },
           ]"
           :data-testid="option.name"
@@ -167,7 +168,7 @@ const { isSystem } = useColumnCreateStoreOrThrow()
                 'flex-1': !searchBasisInfoMap[option.name],
               }"
             >
-              {{ UITypesName[option.name] }}
+              {{ UITypesName[option.name] ?? (option.name === AIField ? 'AI Field' : option.name) }}
             </div>
             <div v-if="searchBasisInfoMap[option.name]" class="flex-1 flex">
               <NcTooltip :title="searchBasisInfoMap[option.name]" class="flex cursor-help">

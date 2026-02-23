@@ -61,8 +61,9 @@ const isAddingColumnAllowed = computed(() => !readOnly.value && isUIAllowed('fie
 const isAIEnrichmentDialogOpen = ref(false)
 const open = ref(false)
 
-const handleOpenAiEnrichment = () => {
-  open.value = false // Close the Fields dropdown first
+const handleOpenAiEnrichmentFromNewField = () => {
+  addColumnDropdown.value = false
+  open.value = false // Close the main Fields menu so only the AI Enrichment dialog is visible
   isAIEnrichmentDialogOpen.value = true
 }
 
@@ -995,7 +996,6 @@ const onAddColumnDropdownVisibilityChange = () => {
             <span> {{ $t('title.systemFields') }} </span>
           </NcButton>
           <div class="flex gap-2">
-            <SmartsheetToolbarAIFieldButton v-if="isAddingColumnAllowed" @click="handleOpenAiEnrichment" />
             <NcDropdown
               v-if="isAddingColumnAllowed"
               v-model:visible="addColumnDropdown"
@@ -1016,8 +1016,10 @@ const onAddColumnDropdownVisibilityChange = () => {
                   <LazySmartsheetColumnEditOrAddProvider
                     v-if="addColumnDropdown"
                     ref="editOrAddProviderRef"
+                    :show-a-i-field-enrichment="isAddingColumnAllowed"
                     @submit="onColumnSubmitted()"
                     @cancel="addColumnDropdown = false"
+                    @open-ai-enrichment="handleOpenAiEnrichmentFromNewField"
                     @click.stop
                     @keydown.stop
                   />
