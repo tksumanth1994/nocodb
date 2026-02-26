@@ -204,6 +204,7 @@ const editColumn = ref<ColumnType | null>(null)
 const lastOpenColumnDropdownField = ref<ColumnType | null>(null)
 const columnOrder = ref<Pick<ColumnReqType, 'column_order'> | null>(null)
 const isEditColumnDescription = ref(false)
+const isAIEnrichmentDialogOpen = ref(false)
 const mousePosition = reactive({ x: 0, y: 0 })
 const clientMousePosition = reactive(clientMousePositionDefaultValue)
 const paddingLessUITypes = new Set([
@@ -450,6 +451,31 @@ const isCreateOrEditColumnDropdownOpen = computed({
     _isCreateOrEditColumnDropdownOpen.value = value
   },
 })
+
+// AI Enrichment Dialog support
+const { handleSave: handleAIEnrichmentSave } = useAIEnrichment({
+  meta,
+  view,
+  eventBus,
+  getMeta,
+  onSuccess: () => {
+    isAIEnrichmentDialogOpen.value = false
+    closeAddColumnDropdownMenu(true)
+  },
+  onError: () => {
+    isAIEnrichmentDialogOpen.value = false
+  },
+})
+
+const handleAIEnrichmentCancel = () => {
+  isAIEnrichmentDialogOpen.value = false
+}
+
+const handleOpenAiEnrichmentFromColumnHeader = () => {
+  isCreateOrEditColumnDropdownOpen.value = false
+  isDropdownVisible.value = false
+  isAIEnrichmentDialogOpen.value = true
+}
 
 const noPadding = computed(() => paddingLessUITypes.has(editEnabled.value?.column.uidt as UITypes))
 
@@ -3030,9 +3056,11 @@ watch(
               :column-position="columnOrder"
               :edit-description="isEditColumnDescription"
               :preload="preloadColumn"
+              :show-a-i-field-enrichment="isAddingColumnAllowed"
               @submit="closeAddColumnDropdownMenu(!editColumn?.id, $event)"
               @cancel="closeAddColumnDropdownMenu()"
               @mounted="preloadColumn = undefined"
+              @open-ai-enrichment="handleOpenAiEnrichmentFromColumnHeader"
               @click.stop
               @keydown.stop
             />
@@ -3124,6 +3152,14 @@ watch(
   </div>
 
   <DlgSendRecordEmail v-model="showSendRecordModal" :meta="meta" :view="view" :row-id="sendRecordRowId" />
+
+  <SmartsheetColumnAIEnrichmentDialog
+    v-if="meta"
+    v-model:visible="isAIEnrichmentDialogOpen"
+    :columns="meta?.columns || []"
+    @save="handleAIEnrichmentSave"
+    @cancel="handleAIEnrichmentCancel"
+  />
 </template>
 
 <style scoped lang="scss">

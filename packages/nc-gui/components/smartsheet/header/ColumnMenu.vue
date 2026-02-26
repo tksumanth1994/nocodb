@@ -477,8 +477,23 @@ const handleDelete = () => {
   showDeleteColumnModal.value = true
 }
 
+// AI Field detection
+const isAIField = computed(() => {
+  return parseProp(column.value?.meta)?.isAIField === true
+})
+
+// AI Enrichment Dialog state
+const isAIEnrichmentDialogOpen = ref(false)
+
 const onEditPress = (event?: MouseEvent, enableDescription = false) => {
   isOpen.value = false
+
+  // If column is an AI field, open AI Enrichment Dialog instead of standard edit
+  if (isAIField.value && !enableDescription) {
+    isAIEnrichmentDialogOpen.value = true
+    return
+  }
+
   emit('edit', event, enableDescription, column.value)
 }
 
@@ -620,6 +635,24 @@ const onDeleteColumn = () => {
   // skipping filter reload here since we reload filters on columns count change with in useViewFilter
   // if any of the above events are emitted, then reload the data
   if (isFilterRemoved || isSortRemoved) eventBus.emit(SmartsheetStoreEvents.DATA_RELOAD)
+}
+
+// Handle AI Enrichment Save and Cancel using reusable composable
+const { handleSave: handleAIEnrichmentSave } = useAIEnrichment({
+  meta,
+  column,
+  eventBus,
+  getMeta,
+  onSuccess: () => {
+    isAIEnrichmentDialogOpen.value = false
+  },
+  onError: () => {
+    isAIEnrichmentDialogOpen.value = false
+  },
+})
+
+const handleAIEnrichmentCancel = () => {
+  isAIEnrichmentDialogOpen.value = false
 }
 </script>
 
@@ -989,6 +1022,15 @@ const onDeleteColumn = () => {
         :field-id="column.id!"
         :field-title="column.title!"
         :field-uidt="column.uidt!"
+      />
+      <SmartsheetColumnAIEnrichmentDialog
+        v-if="column"
+        key="ai-enrichment-dialog"
+        v-model:visible="isAIEnrichmentDialogOpen"
+        :columns="meta?.columns || []"
+        :editing-column="column"
+        @save="handleAIEnrichmentSave"
+        @cancel="handleAIEnrichmentCancel"
       />
     </div>
   </NcMenu>

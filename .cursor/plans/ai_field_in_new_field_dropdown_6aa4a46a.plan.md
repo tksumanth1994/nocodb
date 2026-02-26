@@ -1,10 +1,3 @@
----
-name: AI Field in New Field dropdown
-overview: Move the "AI Field" action from a separate button in the Fields Menu into the New Field column-type list, so that choosing "AI Field" from that list opens the existing AI Enrichment dialog. No database or backend changes are required; the enrichment flow already creates columns via the existing bulk API with `meta.isAIField`.
-todos: []
-isProject: false
----
-
 # Add "AI Field" to New Field column-type dropdown
 
 ## Current behavior
@@ -97,27 +90,30 @@ sequenceDiagram
   FieldsMenu->>AIEnrichmentDialog: Show dialog
 ```
 
-
-
 ---
 
 ## Files to touch
 
-
 | Area     | File                                                                        | Change                                                                                          |
-| -------- | --------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| SDK      | `packages/nocodb-sdk/src/lib/UITypes.ts`                                    | Add `AIField` to `UITypesName` and `UITypesSearchTerms`                                         |
-| GUI      | `packages/nc-gui/utils/columnUtils.ts`                                      | Export `AIField`, add entry to `uiTypes`                                                        |
-| GUI      | `packages/nc-gui/components/smartsheet/column/EditOrAdd.vue`                | Handle `AIField` in `uiFilters` (when prop true) and `onSelectType` (emit `open-ai-enrichment`) |
-| GUI      | `packages/nc-gui/components/smartsheet/column/EditOrAddProvider.vue`        | Add prop `showAIFieldEnrichment`, forward `open-ai-enrichment`                                  |
-| GUI      | `packages/nc-gui/components/smartsheet/toolbar/FieldsMenu.vue`              | Pass prop to provider, listen `@open-ai-enrichment`, remove AI button                           |
-| GUI      | `packages/nc-gui/components/smartsheet/column/UITypesOptionsWithSearch.vue` | Import `AIField`, add to purple-style condition                                                 |
-| Optional | `packages/nc-gui/components/smartsheet/toolbar/AIFieldButton.vue`           | Remove if unused                                                                                |
 
+| -------- | --------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+
+| SDK      | `packages/nocodb-sdk/src/lib/UITypes.ts`                                    | Add `AIField` to `UITypesName` and `UITypesSearchTerms`                                         |
+
+| GUI      | `packages/nc-gui/utils/columnUtils.ts`                                      | Export `AIField`, add entry to `uiTypes`                                                        |
+
+| GUI      | `packages/nc-gui/components/smartsheet/column/EditOrAdd.vue`                | Handle `AIField` in `uiFilters` (when prop true) and `onSelectType` (emit `open-ai-enrichment`) |
+
+| GUI      | `packages/nc-gui/components/smartsheet/column/EditOrAddProvider.vue`        | Add prop `showAIFieldEnrichment`, forward `open-ai-enrichment`                                  |
+
+| GUI      | `packages/nc-gui/components/smartsheet/toolbar/FieldsMenu.vue`              | Pass prop to provider, listen `@open-ai-enrichment`, remove AI button                           |
+
+| GUI      | `packages/nc-gui/components/smartsheet/column/UITypesOptionsWithSearch.vue` | Import `AIField`, add to purple-style condition                                                 |
+
+| Optional | `packages/nc-gui/components/smartsheet/toolbar/AIFieldButton.vue`           | Remove if unused                                                                                |
 
 ---
 
 ## Clarification (optional)
 
 - **Scope of "AI Field"**: The plan above restricts "AI Field" to the Fields Menu’s New Field dropdown via `showAIFieldEnrichment`. If you want "AI Field" to appear in **every** add-column UI (e.g. grid header, form view), we can skip the prop and always show it; then every place that embeds EditOrAddProvider would need to handle `open-ai-enrichment` (e.g. by opening a globally available enrichment dialog) or accept that selecting "AI Field" only does something when opened from Fields Menu.
-

@@ -2977,7 +2977,9 @@ export interface ColumnType {
     | 'LastModifiedBy'
     | 'AI'
     | 'Order'
-    | 'Meta';
+    | 'Meta'
+    | 'Colour'
+    | 'UUID';
   /** Is Unsigned? */
   un?: BoolType;
   /** Is unique? */
@@ -3207,6 +3209,8 @@ export interface FilterType {
    * @example 1
    */
   order?: number;
+  /** Whether this filter is enabled. Disabled filters are skipped during evaluation. */
+  enabled?: BoolType;
 }
 
 /**
@@ -3349,6 +3353,8 @@ export interface FilterReqType {
   logical_op?: 'and' | 'not' | 'or';
   /** The filter value. Can be NULL for some operators. */
   value?: any;
+  /** Whether this filter is enabled. Disabled filters are skipped during evaluation. */
+  enabled?: BoolType;
 }
 
 export interface FollowerType {
@@ -4535,7 +4541,9 @@ export interface NormalColumnRequestType {
     | 'LastModifiedBy'
     | 'AI'
     | 'Order'
-    | 'Meta';
+    | 'Meta'
+    | 'Colour'
+    | 'UUID';
   /** Is this column unique? */
   un?: BoolType;
   /** Is this column unique? */
@@ -4777,6 +4785,10 @@ export interface BaseType {
       id: string;
     }[];
   }[];
+  /** Indicates if the base is a sandbox */
+  is_sandbox?: BoolType;
+  /** Indicates if the base is a sandbox master */
+  is_sandbox_master?: BoolType;
 }
 
 /**

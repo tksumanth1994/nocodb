@@ -5,6 +5,7 @@ import { UITypes } from 'nocodb-sdk'
 const props = defineProps<{
   visible: boolean
   columns: ColumnType[]
+  editingColumn?: ColumnType
 }>()
 
 const emit = defineEmits<{
@@ -16,24 +17,10 @@ const emit = defineEmits<{
   (e: 'cancel'): void
 }>()
 
-const { t } = useI18n()
-
 const prompt = ref('')
 const outputColumns = ref<Array<{ id: string; name: string; type: string }>>([{ id: '1', name: '', type: 'Text' }])
 
 const visible = useVModel(props, 'visible', emit)
-
-const addColumn = () => {
-  outputColumns.value.push({
-    id: Date.now().toString(),
-    name: '',
-    type: 'Text',
-  })
-}
-
-const removeColumn = (id: string) => {
-  outputColumns.value = outputColumns.value.filter((col) => col.id !== id)
-}
 
 const columnTypeOptions = ['Text', 'Number', 'Date', 'URL', 'Checkbox']
 
@@ -46,6 +33,62 @@ const typeToUIType: Record<string, UITypes> = {
   Checkbox: UITypes.Checkbox,
   Link: UITypes.URL,
   Boolean: UITypes.Checkbox,
+}
+
+// Reverse mapping from UITypes to simple type names (partial mapping)
+const uiTypeToType: Partial<Record<UITypes, string>> = {
+  [UITypes.SingleLineText]: 'Text',
+  [UITypes.Number]: 'Number',
+  [UITypes.Date]: 'Date',
+  [UITypes.URL]: 'URL',
+  [UITypes.Checkbox]: 'Checkbox',
+}
+
+// Helper function to convert UIType to simple type name
+const getTypeFromUIType = (uidt: UITypes): string => {
+  return uiTypeToType[uidt] || 'Text'
+}
+
+// Check if we're in edit mode
+const isEditMode = computed(() => !!props.editingColumn)
+
+// Watch for dialog opening to pre-populate data in edit mode
+watch(visible, (newVal) => {
+  if (newVal && isEditMode.value && props.editingColumn) {
+    // Pre-populate prompt from existing column metadata
+    const columnMeta = parseProp(props.editingColumn.meta || {})
+    if (columnMeta.prompt?.prompt_text) {
+      prompt.value = columnMeta.prompt.prompt_text
+    } else {
+      prompt.value = ''
+    }
+
+    // Pre-populate output columns with the existing column
+    const columnType = getTypeFromUIType(props.editingColumn.uidt as UITypes)
+    outputColumns.value = [
+      {
+        id: '1',
+        name: props.editingColumn.title || '',
+        type: columnType,
+      },
+    ]
+  } else if (newVal && !isEditMode.value) {
+    // Reset to default for create mode
+    prompt.value = ''
+    outputColumns.value = [{ id: '1', name: '', type: 'Text' }]
+  }
+})
+
+const addColumn = () => {
+  outputColumns.value.push({
+    id: Date.now().toString(),
+    name: '',
+    type: 'Text',
+  })
+}
+
+const removeColumn = (id: string) => {
+  outputColumns.value = outputColumns.value.filter((col) => col.id !== id)
 }
 
 const saveDropdownVisible = ref(false)
@@ -83,7 +126,7 @@ const handleCancel = () => {
         <!-- Title -->
         <div>
           <div class="font-semibold text-nc-content-gray">
-            {{ $t('title.whatIsYourPrompt') }}
+            {{ isEditMode ? $t('title.editAIField') || 'Edit AI Field' : $t('title.whatIsYourPrompt') }}
           </div>
           <!-- Prompt Input -->
           <div class="mt-2">
@@ -99,7 +142,9 @@ const handleCancel = () => {
 
         <!-- Add Column Section -->
         <div>
-          <div class="text-base font-medium mb-3">{{ $t('title.addColumn') }}</div>
+          <div class="text-base font-medium mb-3">
+            {{ isEditMode ? $t('title.editColumn') || 'Edit Column' : $t('title.addColumn') }}
+          </div>
 
           <div class="space-y-3">
             <div v-for="col in outputColumns" :key="col.id" class="flex items-center gap-2">
@@ -114,11 +159,12 @@ const handleCancel = () => {
               </NcButton>
             </div>
           </div>
-
-          <NcButton type="secondary" size="small" class="mt-3 w-40" @click="addColumn">
+<template v-if="!isEditMode">
+          <NcButton  type="secondary" size="small" class="mt-3 w-40" @click="addColumn">
             <GeneralIcon icon="plus" class="w-4 h-4 mr-2" />
             {{ $t('title.addColumn') }}
           </NcButton>
+        </template>
         </div>
 
         <!-- Action Buttons -->

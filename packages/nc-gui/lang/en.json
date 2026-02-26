@@ -907,6 +907,8 @@
     "renameWs": "Rename Workspace",
     "whatIsYourPrompt": "What is your prompt?",
     "addColumn": "Add Column",
+    "editAIField": "Edit Prompt",
+    "editColumn": "Edit Column",
     "saveAndRunOn1Row": "Save & Run on 1 row",
     "saveAndRunOn10Rows": "Save & Run on 10 rows",
     "saveAndRunOnAllRows": "Save & Run on All rows",
