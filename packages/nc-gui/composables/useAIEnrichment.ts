@@ -24,14 +24,49 @@ export function useAIEnrichment(options: UseAIEnrichmentOptions) {
     const { t } = useI18n()
 
     /**
+     * Extracts column IDs referenced in prompt using {columnName} syntax
+     * @param prompt - Prompt text with {columnName} placeholders
+     * @param columns - Available columns in the table
+     * @returns Array of column IDs that are referenced
+     */
+    function extractReferenceColumnIds(
+        prompt: string,
+        columns: ColumnType[],
+    ): string[] {
+        if (!prompt || !columns) return []
+
+        const regex = /{([^}]+)}/g
+        const matches: string[] = []
+        let match
+
+        while ((match = regex.exec(prompt)) !== null) {
+            const columnName = match[1].trim()
+            // Find column by title (case-insensitive)
+            const column = columns.find(
+                (col) => col.title?.toLowerCase() === columnName.toLowerCase(),
+            )
+            if (column?.id) {
+                matches.push(column.id)
+            }
+        }
+
+        // Remove duplicates
+        return [...new Set(matches)]
+    }
+
+    /**
      * Creates AI metadata structure for a column
      */
-    const createAIMetadata = (prompt: string, existingMeta?: any) => {
+    const createAIMetadata = (
+        prompt: string,
+        existingMeta?: any,
+        referenceColumnIds?: string[],
+    ) => {
         return {
             isAIField: true,
             prompt: {
                 prompt_text: prompt,
-                references: [], // Extract from prompt if needed
+                references: referenceColumnIds || existingMeta?.prompt?.references || [],
                 created_at: existingMeta?.prompt?.created_at || new Date().toISOString(),
                 created_by: existingMeta?.prompt?.created_by || null,
                 ...(existingMeta?.prompt?.created_at ? {} : { updated_at: new Date().toISOString() }),
@@ -49,6 +84,12 @@ export function useAIEnrichment(options: UseAIEnrichmentOptions) {
 
         const currIndex = meta.value?.columns?.length ?? 0
 
+        // Extract reference column IDs from prompt
+        const referenceColumnIds = extractReferenceColumnIds(
+            config.prompt,
+            meta.value?.columns || [],
+        )
+
         // Build bulk operations for adding columns
         const bulkOpsCols = config.outputColumns.map((col, index) => ({
             op: 'add' as const,
@@ -63,7 +104,7 @@ export function useAIEnrichment(options: UseAIEnrichmentOptions) {
                     order: currIndex + index,
                     view_id: view?.value?.id,
                 },
-                meta: createAIMetadata(config.prompt),
+                meta: createAIMetadata(config.prompt, undefined, referenceColumnIds),
             },
         }))
 
@@ -102,11 +143,33 @@ export function useAIEnrichment(options: UseAIEnrichmentOptions) {
             throw new Error('Table metadata or column not available')
         }
 
+        // Extract reference column IDs from prompt
+        const referenceColumnIds = extractReferenceColumnIds(
+            config.prompt,
+            meta.value?.columns || [],
+        )
+
         // Update the existing column's metadata
         const currentMeta = parseProp(column!.value.meta || {})
         const updatedMeta = {
             ...currentMeta,
-            ...createAIMetadata(config.prompt, currentMeta),
+            ...createAIMetadata(config.prompt, currentMeta, referenceColumnIds),
+        }
+
+        // Prepare update payload with meta, title, and uidt
+        const updatePayload: any = { meta: updatedMeta }
+
+        // Include title and uidt from outputColumns if provided (for editing column name/type)
+        if (config.outputColumns && config.outputColumns.length > 0) {
+            const newColumnName = config.outputColumns[0].name
+            const newColumnType = config.outputColumns[0].type
+
+            if (newColumnName) {
+                updatePayload.title = newColumnName
+            }
+            if (newColumnType) {
+                updatePayload.uidt = newColumnType
+            }
         }
 
         // Update the column via API
@@ -117,9 +180,7 @@ export function useAIEnrichment(options: UseAIEnrichmentOptions) {
                 operation: 'columnUpdate',
                 columnId: column!.value.id,
             },
-            {
-                meta: updatedMeta,
-            },
+            updatePayload,
         )
 
         // Refresh table metadata

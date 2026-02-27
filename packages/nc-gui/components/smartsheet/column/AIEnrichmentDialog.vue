@@ -52,13 +52,26 @@ const getTypeFromUIType = (uidt: UITypes): string => {
 // Check if we're in edit mode
 const isEditMode = computed(() => !!props.editingColumn)
 
+// Helper to convert prompt with {columnId} back to {columnName} for editing
+const convertPromptIdsToNames = (prompt: string, columns: ColumnType[]): string => {
+  if (!prompt || !columns) return prompt
+
+  return prompt.replace(/{([^}]+)}/g, (match, columnId) => {
+    const column = columns.find((col) => col.id === columnId)
+    return column?.title ? `{${column.title}}` : match
+  })
+}
+
 // Watch for dialog opening to pre-populate data in edit mode
 watch(visible, (newVal) => {
   if (newVal && isEditMode.value && props.editingColumn) {
     // Pre-populate prompt from existing column metadata
     const columnMeta = parseProp(props.editingColumn.meta || {})
     if (columnMeta.prompt?.prompt_text) {
-      prompt.value = columnMeta.prompt.prompt_text
+      // Convert {columnId} back to {columnName} for editing
+      // Prefer prompt_raw if available (contains original column names)
+      const promptToUse = columnMeta.prompt.prompt_raw || columnMeta.prompt.prompt_text
+      prompt.value = convertPromptIdsToNames(promptToUse, props.columns)
     } else {
       prompt.value = ''
     }
@@ -154,7 +167,13 @@ const handleCancel = () => {
                   {{ type }}
                 </a-select-option>
               </a-select>
-              <NcButton type="text" size="xs" class="!w-8 !h-8" @click="removeColumn(col.id)">
+              <NcButton 
+                v-if="!isEditMode || outputColumns.length > 1" 
+                type="text" 
+                size="xs" 
+                class="!w-8 !h-8" 
+                @click="removeColumn(col.id)"
+              >
                 <GeneralIcon icon="close" class="w-4 h-4" />
               </NcButton>
             </div>
